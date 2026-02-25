@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import LogoImg from '@/assets/Logo.png';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
@@ -22,7 +21,17 @@ export default function Navigation() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-12">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
-            <img src={LogoImg} alt="Embrace Jewelery" className="h-8 w-auto" />
+            <video
+              className="h-10 w-auto object-contain"
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+              aria-label="Embrace Jewelery logo"
+            >
+              <source src="/Logo.mp4" type="video/mp4" />
+            </video>
             <div className="flex flex-col leading-tight">
               <span className="brand-embrace text-2xl font-semibold tracking-wider text-gold-gradient">
                 Embrace
