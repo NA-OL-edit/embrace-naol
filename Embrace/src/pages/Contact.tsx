@@ -110,8 +110,8 @@ export default function Contact() {
 
               <div className="mt-12 space-y-8">
                 {[
-                  { icon: MapPin, label: 'Visit Us', value: '1234 Gold Blvd, Beverly Hills, CA 90210' },
-                  { icon: Mail, label: 'Email', value: 'info@embracejewelery.com' },
+                  { icon: MapPin, label: 'Visit Us', value: 'Address: Addis Ababa, Ethiopia and UAE, Dubai' },
+                  { icon: Mail, label: 'Email', value: 'info@mbracerefiningandcasting.com' },
                   { icon: Phone, label: 'Call', value: '+1 (555) GOLD-999' },
                 ].map((item) => (
                   <div key={item.label} className="flex items-start gap-4">
@@ -204,3 +204,5 @@ export default function Contact() {
     </main>
   );
 }
+
+
