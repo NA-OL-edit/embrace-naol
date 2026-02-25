@@ -30,7 +30,7 @@ export default function Navigation() {
               preload="auto"
               aria-label="Embrace Jewelery logo"
             >
-              <source src="/Logo.mp4" type="video/mp4" />
+              <source src="/logo.mp4" type="video/mp4" />
             </video>
             <div className="flex flex-col leading-tight">
               <span className="brand-embrace text-2xl font-semibold tracking-wider text-gold-gradient">
@@ -105,3 +105,4 @@ export default function Navigation() {
     </nav>
   );
 }
+
