@@ -31,7 +31,7 @@ export default function Footer() {
             <h4 className="font-display text-lg font-medium text-foreground">Contact</h4>
             <div className="mt-4 flex flex-col gap-2 font-body text-sm font-light text-muted-foreground">
               <p>info@mbracerefiningandcasting.com</p>
-              <p>+1 (555) gold-999</p>
+              <p>+1 (647) 325-8363</p>
               <p>Address: Addis Ababa, Ethiopia and UAE, Dubai</p>
             </div>
           </div>
@@ -44,5 +44,6 @@ export default function Footer() {
     </footer>
   );
 }
+
 
 

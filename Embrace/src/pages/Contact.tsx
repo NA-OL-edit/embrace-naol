@@ -112,7 +112,7 @@ export default function Contact() {
                 {[
                   { icon: MapPin, label: 'Visit Us', value: 'Address: Addis Ababa, Ethiopia and UAE, Dubai' },
                   { icon: Mail, label: 'Email', value: 'info@mbracerefiningandcasting.com' },
-                  { icon: Phone, label: 'Call', value: '+1 (555) GOLD-999' },
+                  { icon: Phone, label: 'Call', value: '+1 (647) 325-8363' },
                 ].map((item) => (
                   <div key={item.label} className="flex items-start gap-4">
                     <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center border border-border bg-background">
@@ -204,5 +204,6 @@ export default function Contact() {
     </main>
   );
 }
+
 
 
