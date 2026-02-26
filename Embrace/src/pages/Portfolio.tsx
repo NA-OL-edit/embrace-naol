@@ -3,21 +3,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FadeUp } from '@/components/AnimationWrappers';
-import portfolio1 from '@/assets/portfolio-1.jpg';
-import portfolio2 from '@/assets/portfolio-2.jpg';
-import portfolio3 from '@/assets/portfolio-3.jpg';
-import portfolio4 from '@/assets/portfolio-4.jpg';
+import refiningPourImg from '@/assets/f (4).jpg';
+import refiningProcessImg from '@/assets/p (1).png';
+import castingSignetImg from '@/assets/g1 (4).png';
+import castingMoltenImg from '@/assets/p (7).png';
+import customPendantImg from '@/assets/p (6).png';
+import customBandImg from '@/assets/p (4).png';
 
 const categories = ['All', 'Refining', 'Casting', 'Custom'];
 const SAVED_PROJECTS_KEY = 'savedPortfolioProjects';
 
 const projects = [
-  { img: portfolio1, title: 'Royal Signet Ring', cat: 'Casting', desc: '24K gold signet with diamond pave setting' },
-  { img: portfolio2, title: 'Investment Bars', cat: 'Refining', desc: '99.99% pure gold bullion, 1kg certified bars' },
-  { img: portfolio3, title: 'Heritage Necklace', cat: 'Custom', desc: 'Bespoke diamond and gold statement necklace' },
-  { img: portfolio4, title: 'Artisan Pendant', cat: 'Casting', desc: 'Hand-cast pendant with organic gold texture' },
-  { img: portfolio1, title: 'Eternity Band', cat: 'Custom', desc: 'Channel-set diamond eternity ring in 18K' },
-  { img: portfolio2, title: 'Refined Ingots', cat: 'Refining', desc: 'Small-batch artisan gold ingots for collectors' },
+  { img: castingSignetImg, title: 'Royal Signet Ring', cat: 'Casting', desc: '24K gold signet with diamond pave setting' },
+  { img: refiningPourImg, title: 'Investment Bars', cat: 'Refining', desc: '99.99% pure gold bullion, 1kg certified bars' },
+  { img: customPendantImg, title: 'Heritage Necklace', cat: 'Custom', desc: 'Bespoke diamond and gold statement necklace' },
+  { img: castingMoltenImg, title: 'Artisan Pendant', cat: 'Casting', desc: 'Hand-cast pendant with organic gold texture' },
+  { img: customBandImg, title: 'Eternity Band', cat: 'Custom', desc: 'Channel-set diamond eternity ring in 18K' },
+  { img: refiningProcessImg, title: 'Refined Ingots', cat: 'Refining', desc: 'Small-batch artisan gold ingots for collectors' },
 ];
 
 type Project = (typeof projects)[number];
