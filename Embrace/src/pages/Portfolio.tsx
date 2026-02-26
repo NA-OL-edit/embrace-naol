@@ -3,23 +3,50 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FadeUp } from '@/components/AnimationWrappers';
-import refiningPourImg from '@/assets/f (4).jpg';
-import refiningProcessImg from '@/assets/p (1).png';
-import castingSignetImg from '@/assets/g1 (4).png';
-import castingMoltenImg from '@/assets/p (7).png';
-import customPendantImg from '@/assets/p (6).png';
-import customBandImg from '@/assets/p (4).png';
+import f1Img from '@/assets/f (1).jpg';
+import f3Img from '@/assets/f (3).jpg';
+import f4Img from '@/assets/f (4).jpg';
+import g12Img from '@/assets/g1 (2).png';
+import g13Img from '@/assets/g1 (3).png';
+import g14Img from '@/assets/g1 (4).png';
+import g15Img from '@/assets/g1 (5).png';
+import g16Img from '@/assets/g1 (6).png';
+import g17Img from '@/assets/g1 (7).png';
+import g18Img from '@/assets/g1 (8).png';
+import geminiImg from '@/assets/Gemini_Generated_Image_72r93p72r93p72r9.png';
+import p1Img from '@/assets/p (1).png';
+import p2Img from '@/assets/p (2).png';
+import p3Img from '@/assets/p (3).png';
+import p4Img from '@/assets/p (4).png';
+import p5Img from '@/assets/p (5).png';
+import p6Img from '@/assets/p (6).png';
+import p7Img from '@/assets/p (7).png';
 
 const categories = ['All', 'Refining', 'Casting', 'Custom'];
 const SAVED_PROJECTS_KEY = 'savedPortfolioProjects';
 
 const projects = [
-  { img: castingSignetImg, title: 'Royal Signet Ring', cat: 'Casting', desc: '24K gold signet with diamond pave setting' },
-  { img: refiningPourImg, title: 'Investment Bars', cat: 'Refining', desc: '99.99% pure gold bullion, 1kg certified bars' },
-  { img: customPendantImg, title: 'Heritage Necklace', cat: 'Custom', desc: 'Bespoke diamond and gold statement necklace' },
-  { img: castingMoltenImg, title: 'Artisan Pendant', cat: 'Casting', desc: 'Hand-cast pendant with organic gold texture' },
-  { img: customBandImg, title: 'Eternity Band', cat: 'Custom', desc: 'Channel-set diamond eternity ring in 18K' },
-  { img: refiningProcessImg, title: 'Refined Ingots', cat: 'Refining', desc: 'Small-batch artisan gold ingots for collectors' },
+  // REFINING (6)
+  { img: f4Img, title: 'Royal Signet Ring', cat: 'Refining', desc: '24K gold signet with diamond pave setting' },
+  { img: p1Img, title: 'Investment Bars', cat: 'Refining', desc: '99.99% pure gold bullion, 1kg certified bars' },
+  { img: p7Img, title: 'Heritage Necklace', cat: 'Refining', desc: 'Bespoke diamond and gold statement necklace' },
+  { img: p2Img, title: 'Artisan Pendant', cat: 'Refining', desc: 'Hand-cast pendant with organic gold texture' },
+  { img: p4Img, title: 'Eternity Band', cat: 'Refining', desc: 'Channel-set diamond eternity ring in 18K' },
+  { img: g13Img, title: 'Refined Ingots', cat: 'Refining', desc: 'Small-batch artisan gold ingots for collectors' },
+  // CASTING (6)
+  { img: g12Img, title: 'Royal Signet Ring', cat: 'Casting', desc: '24K gold signet with diamond pave setting' },
+  { img: g14Img, title: 'Investment Bars', cat: 'Casting', desc: '99.99% pure gold bullion, 1kg certified bars' },
+  { img: g16Img, title: 'Heritage Necklace', cat: 'Casting', desc: 'Bespoke diamond and gold statement necklace' },
+  { img: g17Img, title: 'Artisan Pendant', cat: 'Casting', desc: 'Hand-cast pendant with organic gold texture' },
+  { img: p5Img, title: 'Eternity Band', cat: 'Casting', desc: 'Channel-set diamond eternity ring in 18K' },
+  { img: geminiImg, title: 'Refined Ingots', cat: 'Casting', desc: 'Small-batch artisan gold ingots for collectors' },
+  // CUSTOM (6)
+  { img: f1Img, title: 'Royal Signet Ring', cat: 'Custom', desc: '24K gold signet with diamond pave setting' },
+  { img: f3Img, title: 'Investment Bars', cat: 'Custom', desc: '99.99% pure gold bullion, 1kg certified bars' },
+  { img: g15Img, title: 'Heritage Necklace', cat: 'Custom', desc: 'Bespoke diamond and gold statement necklace' },
+  { img: g18Img, title: 'Artisan Pendant', cat: 'Custom', desc: 'Hand-cast pendant with organic gold texture' },
+  { img: p3Img, title: 'Eternity Band', cat: 'Custom', desc: 'Channel-set diamond eternity ring in 18K' },
+  { img: p6Img, title: 'Refined Ingots', cat: 'Custom', desc: 'Small-batch artisan gold ingots for collectors' },
 ];
 
 type Project = (typeof projects)[number];
