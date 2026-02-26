@@ -19,7 +19,7 @@ const projects = [
 
 export default function Portfolio() {
   const [active, setActive] = useState('All');
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelected] = useState<(typeof projects)[number] | null>(null);
 
   const filtered = active === 'All' ? projects : projects.filter((p) => p.cat === active);
 
@@ -77,7 +77,7 @@ export default function Portfolio() {
                   animate={{ opacity: 1, scale: 1, rotateY: 0 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.5, delay: i * 0.08 }}
-                  onClick={() => setSelected(selected === i ? null : i)}
+                  onClick={() => setSelected(project)}
                   className="group relative cursor-pointer perspective-[1000px]"
                 >
                   <motion.div
@@ -110,6 +110,100 @@ export default function Portfolio() {
           </motion.div>
         </div>
       </section>
+
+      {/* Portfolio Popup Modal */}
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelected(null)}
+          >
+            <div className="absolute inset-0 bg-black/65 backdrop-blur-md" />
+
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.98 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+              className="relative mx-auto w-full max-w-6xl overflow-hidden"
+              style={{
+                background: 'hsl(var(--obsidian) / 0.9)',
+                border: '1px solid hsl(var(--gold) / 0.52)',
+                boxShadow: '0 30px 90px hsl(0 0% 0% / 0.55), 0 0 28px hsl(var(--gold) / 0.16)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label={`${selected.title} specifications`}
+            >
+              <button
+                type="button"
+                onClick={() => setSelected(null)}
+                className="absolute right-4 top-4 z-10 h-10 w-10 border border-primary/40 bg-black/30 text-primary transition-colors hover:bg-primary/10"
+                aria-label="Close popup"
+              >
+                ×
+              </button>
+
+              <div className="grid gap-0 md:grid-cols-[1.15fr_1fr]">
+                {/* Left: High-res product image */}
+                <div className="relative min-h-[320px] md:min-h-[560px]">
+                  <img
+                    src={selected.img}
+                    alt={selected.title}
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/30" />
+                </div>
+
+                {/* Right: Specification table and actions */}
+                <div className="flex flex-col p-6 md:p-10">
+                  <p className="font-body text-xs uppercase tracking-[0.32em] text-primary">Portfolio Piece</p>
+                  <h2 className="mt-3 font-display text-3xl font-semibold leading-tight text-foreground md:text-4xl">
+                    {selected.title}
+                  </h2>
+
+                  <div className="mt-8 border border-primary/30">
+                    {[
+                      ['Shape', 'Round Brilliant'],
+                      ['Cut', 'Excellent'],
+                      ['Color', 'D'],
+                      ['Clarity', 'VVS1'],
+                      ['Carat', '2.10 ct'],
+                    ].map(([label, value]) => (
+                      <div
+                        key={label}
+                        className="grid grid-cols-2 border-b border-primary/25 px-5 py-4 last:border-b-0"
+                      >
+                        <span className="font-body text-xs uppercase tracking-[0.2em] text-primary">{label}</span>
+                        <span className="text-right font-body text-sm text-white">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-auto flex flex-col gap-3 pt-8 sm:flex-row">
+                    <button
+                      type="button"
+                      className="inline-flex w-full items-center justify-center border border-primary bg-primary px-6 py-3 font-body text-xs font-semibold uppercase tracking-[0.22em] text-primary-foreground transition-all duration-300 hover:shadow-gold"
+                    >
+                      Reserve Now
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex w-full items-center justify-center border border-primary bg-transparent px-6 py-3 font-body text-xs font-semibold uppercase tracking-[0.22em] text-primary transition-all duration-300 hover:bg-primary/10"
+                    >
+                      Enquire
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
