@@ -31,7 +31,7 @@ export default function Index() {
         {/* Background image with overlay */}
         <div className="absolute inset-0">
           <img src={heroBg} alt="" className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-background/80" />
+          <div className="absolute inset-0" style={{ background: 'var(--gradient-dark)' }} />
           <div className="absolute inset-0" style={{ background: 'var(--gradient-radial-gold)' }} />
         </div>
 
