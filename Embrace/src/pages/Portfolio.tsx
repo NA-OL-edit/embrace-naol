@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Heart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { FadeUp } from '@/components/AnimationWrappers';
 import portfolio1 from '@/assets/portfolio-1.jpg';
 import portfolio2 from '@/assets/portfolio-2.jpg';
@@ -7,9 +9,10 @@ import portfolio3 from '@/assets/portfolio-3.jpg';
 import portfolio4 from '@/assets/portfolio-4.jpg';
 
 const categories = ['All', 'Refining', 'Casting', 'Custom'];
+const SAVED_PROJECTS_KEY = 'savedPortfolioProjects';
 
 const projects = [
-  { img: portfolio1, title: 'Royal Signet Ring', cat: 'Casting', desc: '24K gold signet with diamond pavé setting' },
+  { img: portfolio1, title: 'Royal Signet Ring', cat: 'Casting', desc: '24K gold signet with diamond pave setting' },
   { img: portfolio2, title: 'Investment Bars', cat: 'Refining', desc: '99.99% pure gold bullion, 1kg certified bars' },
   { img: portfolio3, title: 'Heritage Necklace', cat: 'Custom', desc: 'Bespoke diamond and gold statement necklace' },
   { img: portfolio4, title: 'Artisan Pendant', cat: 'Casting', desc: 'Hand-cast pendant with organic gold texture' },
@@ -17,11 +20,64 @@ const projects = [
   { img: portfolio2, title: 'Refined Ingots', cat: 'Refining', desc: 'Small-batch artisan gold ingots for collectors' },
 ];
 
+type Project = (typeof projects)[number];
+
 export default function Portfolio() {
   const [active, setActive] = useState('All');
-  const [selected, setSelected] = useState<(typeof projects)[number] | null>(null);
+  const [selected, setSelected] = useState<Project | null>(null);
+  const [savedProjects, setSavedProjects] = useState<Record<string, boolean>>({});
+  const [loadingAction, setLoadingAction] = useState<'reserve' | 'enquire' | null>(null);
+  const [activePopup, setActivePopup] = useState<'reserve' | null>(null);
+  const navigate = useNavigate();
 
   const filtered = active === 'All' ? projects : projects.filter((p) => p.cat === active);
+
+  useEffect(() => {
+    const raw = localStorage.getItem(SAVED_PROJECTS_KEY);
+    if (!raw) return;
+    try {
+      setSavedProjects(JSON.parse(raw));
+    } catch {
+      setSavedProjects({});
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!selected) return;
+
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setActivePopup(null);
+        setSelected(null);
+      }
+    };
+
+    window.addEventListener('keydown', onEsc);
+    return () => window.removeEventListener('keydown', onEsc);
+  }, [selected]);
+
+  const toggleSaved = (title: string) => {
+    setSavedProjects((prev) => {
+      const updated = { ...prev, [title]: !prev[title] };
+      localStorage.setItem(SAVED_PROJECTS_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const handleReserveClick = async () => {
+    setLoadingAction('reserve');
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    setLoadingAction(null);
+    setActivePopup('reserve');
+  };
+
+  const handleEnquireClick = async () => {
+    setLoadingAction('enquire');
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    setLoadingAction(null);
+    setSelected(null);
+    navigate('/contact');
+  };
 
   return (
     <main className="pt-20">
@@ -49,8 +105,8 @@ export default function Portfolio() {
             <button
               key={cat}
               onClick={() => setActive(cat)}
-              className={`relative px-6 py-4 font-body text-sm font-light uppercase tracking-[0.15em] transition-colors
-                ${active === cat ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`relative min-h-[44px] px-6 py-4 font-body text-sm font-light uppercase tracking-[0.15em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary
+                ${active === cat ? 'text-primary' : 'text-muted-foreground hover:text-foreground active:text-primary'}`}
             >
               {cat}
               {active === cat && (
@@ -78,7 +134,16 @@ export default function Portfolio() {
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.5, delay: i * 0.08 }}
                   onClick={() => setSelected(project)}
-                  className="group relative cursor-pointer perspective-[1000px]"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelected(project);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Open details for ${project.title}`}
+                  className="group relative cursor-pointer perspective-[1000px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <motion.div
                     whileHover={{ rotateY: 3, rotateX: -2, scale: 1.02 }}
@@ -101,7 +166,6 @@ export default function Portfolio() {
                       <h3 className="mt-1 font-display text-xl font-medium text-foreground">{project.title}</h3>
                       <p className="mt-1 font-body text-sm font-light text-muted-foreground">{project.desc}</p>
                     </div>
-                    {/* Glass reflection overlay */}
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-foreground/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
                   </motion.div>
                 </motion.div>
@@ -119,7 +183,10 @@ export default function Portfolio() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setSelected(null)}
+            onClick={() => {
+              setActivePopup(null);
+              setSelected(null);
+            }}
           >
             <div className="absolute inset-0 bg-black/65 backdrop-blur-md" />
 
@@ -141,15 +208,30 @@ export default function Portfolio() {
             >
               <button
                 type="button"
-                onClick={() => setSelected(null)}
-                className="absolute right-4 top-4 z-10 h-10 w-10 border border-primary/40 bg-black/30 text-primary transition-colors hover:bg-primary/10"
+                onClick={() => toggleSaved(selected.title)}
+                aria-pressed={!!savedProjects[selected.title]}
+                aria-label={savedProjects[selected.title] ? `Remove ${selected.title} from saved` : `Save ${selected.title}`}
+                className="absolute left-4 top-4 z-10 inline-flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center border border-primary/50 bg-black/35 text-primary transition-all duration-200 hover:bg-primary/12 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black/70"
+              >
+                <Heart
+                  size={18}
+                  className={savedProjects[selected.title] ? 'fill-primary text-primary' : 'text-primary'}
+                />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActivePopup(null);
+                  setSelected(null);
+                }}
+                className="absolute right-4 top-4 z-10 inline-flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center border border-primary/40 bg-black/30 text-primary transition-all duration-200 hover:bg-primary/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black/70"
                 aria-label="Close popup"
               >
-                ×
+                X
               </button>
 
               <div className="grid gap-0 md:grid-cols-[1.15fr_1fr]">
-                {/* Left: High-res product image */}
                 <div className="relative min-h-[320px] md:min-h-[560px]">
                   <img
                     src={selected.img}
@@ -159,7 +241,6 @@ export default function Portfolio() {
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/30" />
                 </div>
 
-                {/* Right: Specification table and actions */}
                 <div className="flex flex-col p-6 md:p-10">
                   <p className="font-body text-xs uppercase tracking-[0.32em] text-primary">Portfolio Piece</p>
                   <h2 className="mt-3 font-display text-3xl font-semibold leading-tight text-foreground md:text-4xl">
@@ -187,19 +268,74 @@ export default function Portfolio() {
                   <div className="mt-auto flex flex-col gap-3 pt-8 sm:flex-row">
                     <button
                       type="button"
-                      className="inline-flex w-full items-center justify-center border border-primary bg-primary px-6 py-3 font-body text-xs font-semibold uppercase tracking-[0.22em] text-primary-foreground transition-all duration-300 hover:shadow-gold"
+                      onClick={handleReserveClick}
+                      disabled={loadingAction !== null}
+                      aria-label="Reserve this item now"
+                      className="inline-flex h-11 min-h-[44px] w-full items-center justify-center border border-primary bg-primary px-6 py-3 font-body text-xs font-semibold uppercase tracking-[0.22em] text-primary-foreground transition-all duration-300 hover:shadow-gold active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      Reserve Now
+                      {loadingAction === 'reserve' ? 'Processing...' : 'Reserve Now'}
                     </button>
                     <button
                       type="button"
-                      className="inline-flex w-full items-center justify-center border border-primary bg-transparent px-6 py-3 font-body text-xs font-semibold uppercase tracking-[0.22em] text-primary transition-all duration-300 hover:bg-primary/10"
+                      onClick={handleEnquireClick}
+                      disabled={loadingAction !== null}
+                      aria-label="Enquire about this item"
+                      className="inline-flex h-11 min-h-[44px] w-full items-center justify-center border border-primary bg-transparent px-6 py-3 font-body text-xs font-semibold uppercase tracking-[0.22em] text-primary transition-all duration-300 hover:bg-primary/10 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      Enquire
+                      {loadingAction === 'enquire' ? 'Redirecting...' : 'Enquire'}
                     </button>
                   </div>
                 </div>
               </div>
+
+              <AnimatePresence>
+                {activePopup === 'reserve' && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4"
+                  >
+                    <motion.div
+                      initial={{ opacity: 0, y: 14, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                      className="w-full max-w-md border border-primary/50 bg-[hsl(var(--obsidian)/0.96)] p-6 shadow-elevation"
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label="Reservation confirmation"
+                    >
+                      <h3 className="font-display text-2xl text-primary">Reservation Initiated</h3>
+                      <p className="mt-3 font-body text-sm text-foreground">
+                        Your reservation request for <span className="text-primary">{selected.title}</span> has been started.
+                        Our team will contact you shortly.
+                      </p>
+                      <div className="mt-6 flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setActivePopup(null)}
+                          className="inline-flex h-11 min-h-[44px] w-full items-center justify-center border border-primary bg-transparent px-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary/10 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          aria-label="Close reservation confirmation"
+                        >
+                          Close
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActivePopup(null);
+                            setSelected(null);
+                            navigate('/contact');
+                          }}
+                          className="inline-flex h-11 min-h-[44px] w-full items-center justify-center border border-primary bg-primary px-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground transition-all hover:shadow-gold active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          aria-label="Continue to contact page"
+                        >
+                          Continue
+                        </button>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           </motion.div>
         )}
