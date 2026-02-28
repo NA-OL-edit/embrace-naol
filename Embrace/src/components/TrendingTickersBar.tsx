@@ -209,7 +209,7 @@ export default function TrendingTickersBar() {
           />
           LIVE MARKET
           <span className={`ml-1 text-[9px] ${fetchStatus === "LIVE" ? "text-emerald-400" : "text-zinc-400"}`}>
-            {fetchStatus === "LIVE" ? "LIVE" : fetchStatus === "MOCK_NO_ENV" ? "MOCK:ENV" : "MOCK:API"}
+            {fetchStatus === "LIVE" ? "LIVE" : fetchStatus === "MOCK_NO_ENV" ? "ENV MISSING" : "API DOWN"}
           </span>
         </div>
 
