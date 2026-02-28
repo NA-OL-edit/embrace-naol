@@ -30,7 +30,7 @@ export default function Index() {
       <section className="relative flex min-h-screen items-center overflow-hidden">
         {/* Background image with overlay */}
         <div className="absolute inset-0">
-          <img src={heroBg} alt="" className="h-full w-full object-cover" />
+          <img fetchPriority="high" src={heroBg} alt="" className="h-full w-full object-cover" />
           <div className="absolute inset-0" style={{ background: 'var(--gradient-dark)' }} />
           <div className="absolute inset-0" style={{ background: 'var(--gradient-radial-gold)' }} />
         </div>
@@ -162,6 +162,8 @@ export default function Index() {
                   <img
                     src={item.img}
                     alt={item.title}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-background/60 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />

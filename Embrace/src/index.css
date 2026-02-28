@@ -221,6 +221,17 @@
   50% { transform: translate3d(0, -14px, 0); }
 }
 
+@keyframes metals-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@layer utilities {
+  .animate-metals-marquee {
+    animation: metals-marquee 24s linear infinite;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   body::before,
   body::after {

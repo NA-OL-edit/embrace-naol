@@ -30,9 +30,9 @@ export default function Footer() {
           <div>
             <h4 className="font-display text-lg font-medium text-foreground">Contact</h4>
             <div className="mt-4 flex flex-col gap-2 font-body text-sm font-light text-muted-foreground">
-              <p>info@mbracerefiningandcasting.com</p>
-              <p>+1 (647) 325-8363</p>
-              <p>Address: Addis Ababa, Ethiopia and UAE, Dubai</p>
+              <p>info@embracerefiningandcasting.com</p>
+              <p>+256769947948, +251943814444, +251943794444</p>
+              <p>Address: Addis Ababa, Ethiopia and UAE, Dubai Kampala, Uganda</p>
             </div>
           </div>
         </div>
@@ -44,6 +44,7 @@ export default function Footer() {
     </footer>
   );
 }
+
 
 
 

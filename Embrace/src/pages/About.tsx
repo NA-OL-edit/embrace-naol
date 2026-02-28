@@ -15,7 +15,7 @@ export default function About() {
       {/* Hero */}
       <section className="relative flex min-h-[60vh] items-end overflow-hidden">
         <div className="absolute inset-0">
-          <img src={aboutBg} alt="Refinery workshop" className="h-full w-full object-cover" />
+          <img fetchPriority="high" src={aboutBg} alt="Refinery workshop" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/30" />
         </div>
         <div className="relative mx-auto max-w-7xl px-6 py-16 md:px-12">
