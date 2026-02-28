@@ -19,7 +19,12 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Missing or invalid symbol parameter." });
     }
 
-    const apiKey = process.env.VITE_MINERAL_API_KEY || process.env.VITE_METALS_API_KEY || process.env.VITE_GOLD_API_KEY;
+    const apiKey =
+        process.env.MINERAL_API_KEY ||
+        process.env.GOLD_API_KEY ||
+        process.env.VITE_MINERAL_API_KEY ||
+        process.env.VITE_METALS_API_KEY ||
+        process.env.VITE_GOLD_API_KEY;
 
     if (!apiKey) {
         console.error("[Backend] Missing GoldAPI Key in environment variables.");

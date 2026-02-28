@@ -10,6 +10,9 @@ type TickerItem = {
   changePct: number;
 };
 
+const IS_PRODUCTION = import.meta.env.PROD;
+const ENABLE_DEV_MOCKS = import.meta.env.DEV && import.meta.env.VITE_ENABLE_PRICE_MOCKS === "true";
+
 const MOCK_TICKERS: TickerItem[] = [
   { name: "Gold", symbol: "XAU", price: 2035.4, unit: "/oz", changePct: 0.82 },
   { name: "Silver", symbol: "XAG", price: 24.91, unit: "/oz", changePct: -0.37 },
@@ -32,7 +35,9 @@ function formatPrice(value: number) {
 }
 
 async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: FetchStatus }> {
-  if (!hasMineralApiConfig()) return { tickers: MOCK_TICKERS, status: "MOCK_NO_ENV" };
+  if (!hasMineralApiConfig()) {
+    return { tickers: ENABLE_DEV_MOCKS ? MOCK_TICKERS : [], status: "MOCK_NO_ENV" };
+  }
 
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), API_TIMEOUT_MS);
@@ -46,17 +51,21 @@ async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: F
     ]);
 
     const parsePrice = async (result: PromiseSettledResult<Response>, mock: TickerItem) => {
-      if (result.status !== "fulfilled" || !result.value.ok) return { price: mock.price, chp: mock.changePct, live: false };
+      if (result.status !== "fulfilled" || !result.value.ok) {
+        return { price: ENABLE_DEV_MOCKS ? mock.price : NaN, chp: ENABLE_DEV_MOCKS ? mock.changePct : NaN, live: false };
+      }
       try {
         const data = await result.value.json();
-        // The GoldAPI response has a "price" field and a "chp" field
+        if (IS_PRODUCTION) {
+          console.info("[Ticker] Production API payload", { symbol: data?.symbol, price: data?.price, chp: data?.chp });
+        }
         return {
-          price: Number(data?.price) || mock.price,
-          chp: Number(data?.chp) || mock.changePct,
-          live: true,
+          price: Number(data?.price) || (ENABLE_DEV_MOCKS ? mock.price : NaN),
+          chp: Number(data?.chp) || (ENABLE_DEV_MOCKS ? mock.changePct : NaN),
+          live: Number.isFinite(Number(data?.price)) && Number.isFinite(Number(data?.chp)),
         };
       } catch {
-        return { price: mock.price, chp: mock.changePct, live: false };
+        return { price: ENABLE_DEV_MOCKS ? mock.price : NaN, chp: ENABLE_DEV_MOCKS ? mock.changePct : NaN, live: false };
       }
     };
 
@@ -66,9 +75,15 @@ async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: F
       parsePrice(platinumRes, MOCK_TICKERS[3]),
     ]);
     const hasAnyLive = goldData.live || silverData.live || platinumData.live;
+    const hasAllLive = goldData.live && silverData.live && platinumData.live;
+    const hasLive = ENABLE_DEV_MOCKS ? hasAnyLive : hasAllLive;
+
+    if (!hasLive) {
+      return { tickers: [], status: "MOCK_API_ERROR" };
+    }
 
     return {
-      status: hasAnyLive ? "LIVE" : "MOCK_API_ERROR",
+      status: "LIVE",
       tickers: [
         {
           name: "Gold",
@@ -85,7 +100,7 @@ async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: F
           changePct: silverData.chp,
         },
         {
-          // Diamond index is mocked because GoldAPI does not provide a diamond benchmark feed.
+          // Diamond index remains static because GoldAPI does not provide a diamond benchmark feed.
           name: "Diamond",
           symbol: "1ct Index",
           price: MOCK_TICKERS[2].price,
@@ -102,7 +117,7 @@ async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: F
       ],
     };
   } catch {
-    return { tickers: MOCK_TICKERS, status: "MOCK_API_ERROR" };
+    return { tickers: ENABLE_DEV_MOCKS ? MOCK_TICKERS : [], status: "MOCK_API_ERROR" };
   } finally {
     window.clearTimeout(timeoutId);
   }
@@ -129,7 +144,7 @@ function saveLastLiveTickers(tickers: TickerItem[]) {
 }
 
 export default function TrendingTickersBar() {
-  const [tickers, setTickers] = useState<TickerItem[]>(() => getLastLiveTickers() ?? MOCK_TICKERS);
+  const [tickers, setTickers] = useState<TickerItem[]>(() => getLastLiveTickers() ?? (ENABLE_DEV_MOCKS ? MOCK_TICKERS : []));
   const [fetchStatus, setFetchStatus] = useState<FetchStatus>("MOCK_NO_ENV");
   const [sequenceWidth, setSequenceWidth] = useState(0);
   const measureRef = useRef<HTMLDivElement>(null);
@@ -145,7 +160,7 @@ export default function TrendingTickersBar() {
         saveLastLiveTickers(next);
       } else {
         const lastLive = getLastLiveTickers();
-        setTickers(lastLive ?? next);
+        setTickers(lastLive ?? next ?? []);
         console.warn(`[Ticker] Using mock data: ${status}`);
       }
       setFetchStatus(status);
