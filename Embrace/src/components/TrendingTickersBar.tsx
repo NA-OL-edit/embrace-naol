@@ -20,6 +20,13 @@ const MOCK_TICKERS: TickerItem[] = [
   { name: "Platinum", symbol: "Platinum", price: 951.2, unit: "/oz", changePct: -0.21 },
 ];
 
+const UNAVAILABLE_TICKERS: TickerItem[] = [
+  { name: "Gold", symbol: "XAU", price: Number.NaN, unit: "/oz", changePct: Number.NaN },
+  { name: "Silver", symbol: "XAG", price: Number.NaN, unit: "/oz", changePct: Number.NaN },
+  { name: "Diamond", symbol: "1ct Index", price: Number.NaN, unit: "", changePct: Number.NaN },
+  { name: "Platinum", symbol: "Platinum", price: Number.NaN, unit: "/oz", changePct: Number.NaN },
+];
+
 const MARQUEE_SPEED_SECONDS = 20;
 const API_TIMEOUT_MS = 8000;
 const REFRESH_INTERVAL_MS = 5 * 60_000;
@@ -27,6 +34,7 @@ const LAST_LIVE_TICKERS_KEY = "embrace:last-live-tickers";
 type FetchStatus = "LIVE" | "MOCK_NO_ENV" | "MOCK_API_ERROR";
 
 function formatPrice(value: number) {
+  if (!Number.isFinite(value)) return "--";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -36,7 +44,7 @@ function formatPrice(value: number) {
 
 async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: FetchStatus }> {
   if (!hasMineralApiConfig()) {
-    return { tickers: ENABLE_DEV_MOCKS ? MOCK_TICKERS : [], status: "MOCK_NO_ENV" };
+    return { tickers: ENABLE_DEV_MOCKS ? MOCK_TICKERS : UNAVAILABLE_TICKERS, status: "MOCK_NO_ENV" };
   }
 
   const controller = new AbortController();
@@ -79,7 +87,7 @@ async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: F
     const hasLive = ENABLE_DEV_MOCKS ? hasAnyLive : hasAllLive;
 
     if (!hasLive) {
-      return { tickers: [], status: "MOCK_API_ERROR" };
+      return { tickers: UNAVAILABLE_TICKERS, status: "MOCK_API_ERROR" };
     }
 
     return {
@@ -117,7 +125,7 @@ async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: F
       ],
     };
   } catch {
-    return { tickers: ENABLE_DEV_MOCKS ? MOCK_TICKERS : [], status: "MOCK_API_ERROR" };
+    return { tickers: ENABLE_DEV_MOCKS ? MOCK_TICKERS : UNAVAILABLE_TICKERS, status: "MOCK_API_ERROR" };
   } finally {
     window.clearTimeout(timeoutId);
   }
@@ -144,7 +152,7 @@ function saveLastLiveTickers(tickers: TickerItem[]) {
 }
 
 export default function TrendingTickersBar() {
-  const [tickers, setTickers] = useState<TickerItem[]>(() => getLastLiveTickers() ?? (ENABLE_DEV_MOCKS ? MOCK_TICKERS : []));
+  const [tickers, setTickers] = useState<TickerItem[]>(() => getLastLiveTickers() ?? (ENABLE_DEV_MOCKS ? MOCK_TICKERS : UNAVAILABLE_TICKERS));
   const [fetchStatus, setFetchStatus] = useState<FetchStatus>("MOCK_NO_ENV");
   const [sequenceWidth, setSequenceWidth] = useState(0);
   const measureRef = useRef<HTMLDivElement>(null);
@@ -160,7 +168,7 @@ export default function TrendingTickersBar() {
         saveLastLiveTickers(next);
       } else {
         const lastLive = getLastLiveTickers();
-        setTickers(lastLive ?? next ?? []);
+        setTickers(lastLive ?? next ?? UNAVAILABLE_TICKERS);
         console.warn(`[Ticker] Using mock data: ${status}`);
       }
       setFetchStatus(status);
