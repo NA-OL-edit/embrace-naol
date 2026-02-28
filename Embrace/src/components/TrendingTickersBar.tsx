@@ -236,16 +236,18 @@ export default function TrendingTickersBar() {
 }
 
 function TickerCell({ item }: { item: TickerItem }) {
-  const isUp = item.changePct >= 0;
-  const arrow = isUp ? "\u25B2" : "\u25BC";
-  const changeClass = isUp ? "text-emerald-400" : "text-red-400";
+  const hasChange = Number.isFinite(item.changePct);
+  const isUp = hasChange && item.changePct >= 0;
+  const arrow = hasChange ? (isUp ? "\u25B2" : "\u25BC") : "";
+  const changeClass = hasChange ? (isUp ? "text-emerald-400" : "text-red-400") : "text-zinc-400";
+  const changeText = hasChange ? `${Math.abs(item.changePct).toFixed(2)}%` : "--";
 
   return (
     <div className="flex items-center gap-2 border-r border-zinc-800 px-4 text-xs">
       <span className="font-semibold tracking-wide">{item.name} ({item.symbol})</span>
       <span>{formatPrice(item.price)}{item.unit}</span>
       <span className={`font-semibold ${changeClass}`}>
-        {arrow} {Math.abs(item.changePct).toFixed(2)}%
+        {arrow} {changeText}
       </span>
     </div>
   );
