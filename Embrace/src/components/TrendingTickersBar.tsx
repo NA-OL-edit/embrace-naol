@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { env, hasMineralApiConfig } from "@/lib/env";
 
 type TickerItem = {
   name: string;
@@ -11,7 +10,8 @@ type TickerItem = {
 };
 
 const IS_PRODUCTION = import.meta.env.PROD;
-const ENABLE_DEV_MOCKS = import.meta.env.DEV && import.meta.env.VITE_ENABLE_PRICE_MOCKS === "true";
+const MINERAL_API_BASE_URL = ((import.meta.env.VITE_MINERAL_API_BASE_URL as string | undefined)?.trim() || "https://www.goldapi.io/api").replace(/\/+$/, "");
+const MINERAL_API_KEY = (import.meta.env.VITE_MINERAL_API_KEY as string | undefined)?.trim();
 
 const MOCK_TICKERS: TickerItem[] = [
   { name: "Gold", symbol: "XAU", price: 2035.4, unit: "/oz", changePct: 0.82 },
@@ -31,7 +31,7 @@ const MARQUEE_SPEED_SECONDS = 20;
 const API_TIMEOUT_MS = 8000;
 const REFRESH_INTERVAL_MS = 5 * 60_000;
 const LAST_LIVE_TICKERS_KEY = "embrace:last-live-tickers";
-type FetchStatus = "LIVE" | "MOCK_NO_ENV" | "MOCK_API_ERROR";
+type FetchStatus = "LIVE" | "API_DOWN";
 
 function formatPrice(value: number) {
   if (!Number.isFinite(value)) return "--";
@@ -43,51 +43,62 @@ function formatPrice(value: number) {
 }
 
 async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: FetchStatus }> {
-  if (!hasMineralApiConfig()) {
-    return { tickers: ENABLE_DEV_MOCKS ? MOCK_TICKERS : UNAVAILABLE_TICKERS, status: "MOCK_NO_ENV" };
+  if (!MINERAL_API_KEY) {
+    console.error("[Ticker] VITE_MINERAL_API_KEY is undefined or empty", { apiKey: MINERAL_API_KEY });
+    return { tickers: UNAVAILABLE_TICKERS, status: "API_DOWN" };
   }
 
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
   try {
-    // We no longer send headers since the backend securely injects its own.
+    console.info("[Ticker] Using VITE_MINERAL_API_KEY", { apiKey: MINERAL_API_KEY });
+    const requestOptions: RequestInit = {
+      method: "GET",
+      signal: controller.signal,
+      headers: {
+        "x-access-token": MINERAL_API_KEY,
+        "Content-Type": "application/json",
+      },
+    };
+
     const [goldRes, silverRes, platinumRes] = await Promise.allSettled([
-      fetch(`${env.mineralApiBaseUrl}?symbol=XAU`, { method: "GET", signal: controller.signal }),
-      fetch(`${env.mineralApiBaseUrl}?symbol=XAG`, { method: "GET", signal: controller.signal }),
-      fetch(`${env.mineralApiBaseUrl}?symbol=XPT`, { method: "GET", signal: controller.signal }),
+      fetch(`${MINERAL_API_BASE_URL}/XAU/USD`, requestOptions),
+      fetch(`${MINERAL_API_BASE_URL}/XAG/USD`, requestOptions),
+      fetch(`${MINERAL_API_BASE_URL}/XPT/USD`, requestOptions),
     ]);
 
-    const parsePrice = async (result: PromiseSettledResult<Response>, mock: TickerItem) => {
+    const parsePrice = async (result: PromiseSettledResult<Response>) => {
       if (result.status !== "fulfilled" || !result.value.ok) {
-        return { price: ENABLE_DEV_MOCKS ? mock.price : NaN, chp: ENABLE_DEV_MOCKS ? mock.changePct : NaN, live: false };
+        return { price: NaN, chp: NaN, live: false };
       }
       try {
         const data = await result.value.json();
+        console.info("[Ticker] API response", data);
+        const price = Number(data?.price);
+        const chp = Number(data?.chp);
         if (IS_PRODUCTION) {
           console.info("[Ticker] Production API payload", { symbol: data?.symbol, price: data?.price, chp: data?.chp });
         }
         return {
-          price: Number(data?.price) || (ENABLE_DEV_MOCKS ? mock.price : NaN),
-          chp: Number(data?.chp) || (ENABLE_DEV_MOCKS ? mock.changePct : NaN),
-          live: Number.isFinite(Number(data?.price)) && Number.isFinite(Number(data?.chp)),
+          price,
+          chp,
+          live: Number.isFinite(price) && Number.isFinite(chp),
         };
       } catch {
-        return { price: ENABLE_DEV_MOCKS ? mock.price : NaN, chp: ENABLE_DEV_MOCKS ? mock.changePct : NaN, live: false };
+        return { price: NaN, chp: NaN, live: false };
       }
     };
 
     const [goldData, silverData, platinumData] = await Promise.all([
-      parsePrice(goldRes, MOCK_TICKERS[0]),
-      parsePrice(silverRes, MOCK_TICKERS[1]),
-      parsePrice(platinumRes, MOCK_TICKERS[3]),
+      parsePrice(goldRes),
+      parsePrice(silverRes),
+      parsePrice(platinumRes),
     ]);
-    const hasAnyLive = goldData.live || silverData.live || platinumData.live;
     const hasAllLive = goldData.live && silverData.live && platinumData.live;
-    const hasLive = ENABLE_DEV_MOCKS ? hasAnyLive : hasAllLive;
 
-    if (!hasLive) {
-      return { tickers: UNAVAILABLE_TICKERS, status: "MOCK_API_ERROR" };
+    if (!hasAllLive) {
+      return { tickers: UNAVAILABLE_TICKERS, status: "API_DOWN" };
     }
 
     return {
@@ -125,7 +136,7 @@ async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: F
       ],
     };
   } catch {
-    return { tickers: ENABLE_DEV_MOCKS ? MOCK_TICKERS : UNAVAILABLE_TICKERS, status: "MOCK_API_ERROR" };
+    return { tickers: UNAVAILABLE_TICKERS, status: "API_DOWN" };
   } finally {
     window.clearTimeout(timeoutId);
   }
@@ -152,8 +163,8 @@ function saveLastLiveTickers(tickers: TickerItem[]) {
 }
 
 export default function TrendingTickersBar() {
-  const [tickers, setTickers] = useState<TickerItem[]>(() => getLastLiveTickers() ?? (ENABLE_DEV_MOCKS ? MOCK_TICKERS : UNAVAILABLE_TICKERS));
-  const [fetchStatus, setFetchStatus] = useState<FetchStatus>("MOCK_NO_ENV");
+  const [tickers, setTickers] = useState<TickerItem[]>(UNAVAILABLE_TICKERS);
+  const [fetchStatus, setFetchStatus] = useState<FetchStatus>("API_DOWN");
   const [sequenceWidth, setSequenceWidth] = useState(0);
   const measureRef = useRef<HTMLDivElement>(null);
 
@@ -167,9 +178,8 @@ export default function TrendingTickersBar() {
         setTickers(next);
         saveLastLiveTickers(next);
       } else {
-        const lastLive = getLastLiveTickers();
-        setTickers(lastLive ?? next ?? UNAVAILABLE_TICKERS);
-        console.warn(`[Ticker] Using mock data: ${status}`);
+        setTickers(next ?? UNAVAILABLE_TICKERS);
+        console.warn(`[Ticker] API failed: ${status}`);
       }
       setFetchStatus(status);
     };
@@ -209,7 +219,7 @@ export default function TrendingTickersBar() {
           />
           LIVE MARKET
           <span className={`ml-1 text-[9px] ${fetchStatus === "LIVE" ? "text-emerald-400" : "text-zinc-400"}`}>
-            {fetchStatus === "LIVE" ? "LIVE" : fetchStatus === "MOCK_NO_ENV" ? "ENV MISSING" : "API DOWN"}
+            {fetchStatus === "LIVE" ? "LIVE" : "API DOWN"}
           </span>
         </div>
 
