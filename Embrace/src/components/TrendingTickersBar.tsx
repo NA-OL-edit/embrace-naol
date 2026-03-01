@@ -10,8 +10,6 @@ type TickerItem = {
 };
 
 const IS_PRODUCTION = import.meta.env.PROD;
-const MINERAL_API_BASE_URL = ((import.meta.env.VITE_MINERAL_API_BASE_URL as string | undefined)?.trim() || "https://www.goldapi.io/api").replace(/\/+$/, "");
-const MINERAL_API_KEY = (import.meta.env.VITE_MINERAL_API_KEY as string | undefined)?.trim();
 
 const MOCK_TICKERS: TickerItem[] = [
   { name: "Gold", symbol: "XAU", price: 2035.4, unit: "/oz", changePct: 0.82 },
@@ -47,29 +45,7 @@ async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: F
   const timeoutId = window.setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
   try {
-    const useDirectGoldApi = Boolean(MINERAL_API_KEY);
-    console.info("[Ticker] API mode", { useDirectGoldApi, apiKey: MINERAL_API_KEY });
-
     const fetchSymbol = async (symbol: "XAU" | "XAG" | "XPT") => {
-      if (useDirectGoldApi) {
-        try {
-          const directRes = await fetch(`${MINERAL_API_BASE_URL}/${symbol}/USD`, {
-            method: "GET",
-            signal: controller.signal,
-            headers: {
-              "x-access-token": MINERAL_API_KEY as string,
-              "Content-Type": "application/json",
-            },
-          });
-          if (directRes.ok) return directRes;
-          console.warn("[Ticker] Direct GoldAPI failed, trying backend proxy", { symbol, status: directRes.status });
-        } catch (error) {
-          console.warn("[Ticker] Direct GoldAPI request error, trying backend proxy", { symbol, error });
-        }
-      } else {
-        console.warn("[Ticker] VITE_MINERAL_API_KEY missing, using backend proxy", { symbol, apiKey: MINERAL_API_KEY });
-      }
-
       return fetch(`/api/price?symbol=${symbol}`, {
         method: "GET",
         signal: controller.signal,
