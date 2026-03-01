@@ -43,29 +43,43 @@ function formatPrice(value: number) {
 }
 
 async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: FetchStatus }> {
-  if (!MINERAL_API_KEY) {
-    console.error("[Ticker] VITE_MINERAL_API_KEY is undefined or empty", { apiKey: MINERAL_API_KEY });
-    return { tickers: UNAVAILABLE_TICKERS, status: "API_DOWN" };
-  }
-
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
   try {
-    console.info("[Ticker] Using VITE_MINERAL_API_KEY", { apiKey: MINERAL_API_KEY });
-    const requestOptions: RequestInit = {
-      method: "GET",
-      signal: controller.signal,
-      headers: {
-        "x-access-token": MINERAL_API_KEY,
-        "Content-Type": "application/json",
-      },
+    const useDirectGoldApi = Boolean(MINERAL_API_KEY);
+    console.info("[Ticker] API mode", { useDirectGoldApi, apiKey: MINERAL_API_KEY });
+
+    const fetchSymbol = async (symbol: "XAU" | "XAG" | "XPT") => {
+      if (useDirectGoldApi) {
+        try {
+          const directRes = await fetch(`${MINERAL_API_BASE_URL}/${symbol}/USD`, {
+            method: "GET",
+            signal: controller.signal,
+            headers: {
+              "x-access-token": MINERAL_API_KEY as string,
+              "Content-Type": "application/json",
+            },
+          });
+          if (directRes.ok) return directRes;
+          console.warn("[Ticker] Direct GoldAPI failed, trying backend proxy", { symbol, status: directRes.status });
+        } catch (error) {
+          console.warn("[Ticker] Direct GoldAPI request error, trying backend proxy", { symbol, error });
+        }
+      } else {
+        console.warn("[Ticker] VITE_MINERAL_API_KEY missing, using backend proxy", { symbol, apiKey: MINERAL_API_KEY });
+      }
+
+      return fetch(`/api/price?symbol=${symbol}`, {
+        method: "GET",
+        signal: controller.signal,
+      });
     };
 
     const [goldRes, silverRes, platinumRes] = await Promise.allSettled([
-      fetch(`${MINERAL_API_BASE_URL}/XAU/USD`, requestOptions),
-      fetch(`${MINERAL_API_BASE_URL}/XAG/USD`, requestOptions),
-      fetch(`${MINERAL_API_BASE_URL}/XPT/USD`, requestOptions),
+      fetchSymbol("XAU"),
+      fetchSymbol("XAG"),
+      fetchSymbol("XPT"),
     ]);
 
     const parsePrice = async (result: PromiseSettledResult<Response>) => {
