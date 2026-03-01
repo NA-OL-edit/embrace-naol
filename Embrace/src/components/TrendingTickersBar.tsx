@@ -9,15 +9,6 @@ type TickerItem = {
   changePct: number;
 };
 
-const IS_PRODUCTION = import.meta.env.PROD;
-
-const MOCK_TICKERS: TickerItem[] = [
-  { name: "Gold", symbol: "XAU", price: 2035.4, unit: "/oz", changePct: 0.82 },
-  { name: "Silver", symbol: "XAG", price: 24.91, unit: "/oz", changePct: -0.37 },
-  { name: "Diamond", symbol: "1ct Index", price: 5140, unit: "", changePct: 1.15 },
-  { name: "Platinum", symbol: "Platinum", price: 951.2, unit: "/oz", changePct: -0.21 },
-];
-
 const UNAVAILABLE_TICKERS: TickerItem[] = [
   { name: "Gold", symbol: "XAU", price: Number.NaN, unit: "/oz", changePct: Number.NaN },
   { name: "Silver", symbol: "XAG", price: Number.NaN, unit: "/oz", changePct: Number.NaN },
@@ -28,7 +19,6 @@ const UNAVAILABLE_TICKERS: TickerItem[] = [
 const MARQUEE_SPEED_SECONDS = 20;
 const API_TIMEOUT_MS = 8000;
 const REFRESH_INTERVAL_MS = 5 * 60_000;
-const LAST_LIVE_TICKERS_KEY = "embrace:last-live-tickers";
 type FetchStatus = "LIVE" | "API_DOWN";
 
 function formatPrice(value: number) {
@@ -64,12 +54,8 @@ async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: F
       }
       try {
         const data = await result.value.json();
-        console.info("[Ticker] API response", data);
         const price = Number(data?.price);
         const chp = Number(data?.chp);
-        if (IS_PRODUCTION) {
-          console.info("[Ticker] Production API payload", { symbol: data?.symbol, price: data?.price, chp: data?.chp });
-        }
         return {
           price,
           chp,
@@ -109,12 +95,12 @@ async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: F
           changePct: silverData.chp,
         },
         {
-          // Diamond index remains static because GoldAPI does not provide a diamond benchmark feed.
+          // No diamond upstream feed is configured in this secure backend flow.
           name: "Diamond",
           symbol: "1ct Index",
-          price: MOCK_TICKERS[2].price,
+          price: Number.NaN,
           unit: "",
-          changePct: MOCK_TICKERS[2].changePct,
+          changePct: Number.NaN,
         },
         {
           name: "Platinum",
@@ -132,26 +118,6 @@ async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: F
   }
 }
 
-function getLastLiveTickers() {
-  try {
-    const raw = window.localStorage.getItem(LAST_LIVE_TICKERS_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { tickers?: TickerItem[] };
-    if (!Array.isArray(parsed?.tickers) || parsed.tickers.length !== MOCK_TICKERS.length) return null;
-    return parsed.tickers;
-  } catch {
-    return null;
-  }
-}
-
-function saveLastLiveTickers(tickers: TickerItem[]) {
-  try {
-    window.localStorage.setItem(LAST_LIVE_TICKERS_KEY, JSON.stringify({ tickers, updatedAt: Date.now() }));
-  } catch {
-    // No-op: storage can fail in private mode or restricted environments.
-  }
-}
-
 export default function TrendingTickersBar() {
   const [tickers, setTickers] = useState<TickerItem[]>(UNAVAILABLE_TICKERS);
   const [fetchStatus, setFetchStatus] = useState<FetchStatus>("API_DOWN");
@@ -166,7 +132,6 @@ export default function TrendingTickersBar() {
       if (!isMounted) return;
       if (status === "LIVE") {
         setTickers(next);
-        saveLastLiveTickers(next);
       } else {
         setTickers(next ?? UNAVAILABLE_TICKERS);
         console.warn(`[Ticker] API failed: ${status}`);

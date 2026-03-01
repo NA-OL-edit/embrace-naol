@@ -1,60 +1,131 @@
+const ALLOWED_SYMBOLS = new Set(["XAU", "XAG", "XPT"]);
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+const RATE_LIMIT_MAX = 100;
+
+const globalStore = globalThis;
+if (!globalStore.__priceRateLimitStore) {
+    globalStore.__priceRateLimitStore = new Map();
+}
+const rateLimitStore = globalStore.__priceRateLimitStore;
+
+function setSecurityHeaders(res) {
+    res.setHeader("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Referrer-Policy", "no-referrer");
+    res.setHeader("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+}
+
+function getClientIp(req) {
+    const forwardedFor = req.headers["x-forwarded-for"];
+    if (typeof forwardedFor === "string" && forwardedFor.length > 0) {
+        return forwardedFor.split(",")[0].trim();
+    }
+    const realIp = req.headers["x-real-ip"];
+    if (typeof realIp === "string" && realIp.length > 0) {
+        return realIp;
+    }
+    return "unknown";
+}
+
+function checkRateLimit(req, res) {
+    const now = Date.now();
+    const ip = getClientIp(req);
+    const key = `price:${ip}`;
+    const existing = rateLimitStore.get(key);
+
+    if (!existing || existing.resetAt <= now) {
+        rateLimitStore.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+        return true;
+    }
+
+    if (existing.count >= RATE_LIMIT_MAX) {
+        const retryAfterSeconds = Math.max(1, Math.ceil((existing.resetAt - now) / 1000));
+        res.setHeader("Retry-After", String(retryAfterSeconds));
+        return false;
+    }
+
+    existing.count += 1;
+    rateLimitStore.set(key, existing);
+    return true;
+}
+
 export default async function handler(req, res) {
-    // Allow cross-origin requests for localhost development
-    res.setHeader("Access-Control-Allow-Credentials", true);
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
-    res.setHeader(
-        "Access-Control-Allow-Headers",
-        "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
-    );
+    setSecurityHeaders(res);
 
-    // Handle OPTIONS request for CORS preflight
+    const forwardedProto = req.headers["x-forwarded-proto"];
+    if (process.env.NODE_ENV === "production" && typeof forwardedProto === "string" && forwardedProto !== "https") {
+        return res.status(403).json({ error: "Service unavailable." });
+    }
+
     if (req.method === "OPTIONS") {
-        return res.status(200).end();
+        return res.status(204).end();
     }
 
-    const { symbol } = req.query;
-
-    if (!symbol || typeof symbol !== "string") {
-        return res.status(400).json({ error: "Missing or invalid symbol parameter." });
+    if (req.method !== "GET") {
+        res.setHeader("Allow", "GET, OPTIONS");
+        return res.status(405).json({ error: "Service unavailable." });
     }
 
-    const apiKey =
-        process.env.MINERAL_API_KEY ||
-        process.env.GOLD_API_KEY ||
-        process.env.VITE_MINERAL_API_KEY ||
-        process.env.VITE_METALS_API_KEY ||
-        process.env.VITE_GOLD_API_KEY;
+    if (!checkRateLimit(req, res)) {
+        return res.status(429).json({ error: "Service unavailable." });
+    }
 
+    const symbolRaw = req.query?.symbol;
+    const symbol = typeof symbolRaw === "string" ? symbolRaw.trim().toUpperCase() : "";
+    if (!ALLOWED_SYMBOLS.has(symbol)) {
+        return res.status(400).json({ error: "Invalid symbol." });
+    }
+
+    const apiKey = process.env.MINERAL_API_KEY || process.env.GOLD_API_KEY || process.env.METALS_API_KEY;
     if (!apiKey) {
-        console.error("[Backend] Missing GoldAPI Key in environment variables.");
-        return res.status(500).json({ error: "Server configuration error: Missing API Key." });
+        console.error("[API] Missing provider API key environment variable.");
+        return res.status(503).json({ error: "Service unavailable." });
     }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
     try {
-        const url = `https://www.goldapi.io/api/${symbol}/USD`;
-        const response = await fetch(url, {
+        const response = await fetch(`https://www.goldapi.io/api/${symbol}/USD`, {
             method: "GET",
             headers: {
                 "x-access-token": apiKey,
                 "Content-Type": "application/json",
             },
+            signal: controller.signal,
         });
 
         if (!response.ok) {
-            const errorData = await response.text();
-            console.error(`[Backend] GoldAPI request failed: ${response.status} ${response.statusText} - ${errorData}`);
-            return res.status(response.status).json({ error: "Upstream API error" });
+            const upstreamBody = await response.text();
+            console.error("[API] Upstream request failed", {
+                status: response.status,
+                statusText: response.statusText,
+                symbol,
+                body: upstreamBody.slice(0, 400),
+            });
+            return res.status(503).json({ error: "Service unavailable." });
         }
 
         const data = await response.json();
+        const price = Number(data?.price);
+        const chp = Number(data?.chp);
+        if (!Number.isFinite(price) || !Number.isFinite(chp)) {
+            console.error("[API] Upstream payload missing numeric fields", { symbol, payload: data });
+            return res.status(503).json({ error: "Service unavailable." });
+        }
 
-        // Cache the response at the edge for 5 minutes (300 seconds)
-        // Serve stale data for up to an additional hour while revalidating in the background.
-        res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=3600");
-        return res.status(200).json(data);
+        res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
+        return res.status(200).json({
+            symbol,
+            price,
+            chp,
+            currency: "USD",
+        });
     } catch (error) {
-        console.error("[Backend] Internal fetch error:", error);
-        return res.status(500).json({ error: "Internal server error connecting to upstream API." });
+        console.error("[API] Internal provider fetch failure", { symbol, error });
+        return res.status(503).json({ error: "Service unavailable." });
+    } finally {
+        clearTimeout(timeoutId);
     }
 }
