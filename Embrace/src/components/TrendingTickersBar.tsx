@@ -26,7 +26,6 @@ const UNAVAILABLE_TICKERS: TickerItem[] = [
 const MARQUEE_SPEED_SECONDS = 20;
 const API_TIMEOUT_MS = 8000;
 const REFRESH_INTERVAL_MS = 5 * 60_000;
-const LAST_LIVE_TICKERS_KEY = "embrace:last-live-tickers";
 type FetchStatus = "LIVE" | "API_DOWN";
 
 function formatPrice(value: number) {
@@ -45,26 +44,6 @@ function parseNumeric(value: unknown): number {
     return parsed;
   }
   return Number.NaN;
-}
-
-function deriveChangePctFromPrevious(currentPrice: number, previousPrice: number) {
-  if (!Number.isFinite(currentPrice) || !Number.isFinite(previousPrice) || previousPrice === 0) {
-    return Number.NaN;
-  }
-  return ((currentPrice - previousPrice) / previousPrice) * 100;
-}
-
-function fillMissingChangePct(current: TickerItem[], previous: TickerItem[] | null) {
-  if (!previous || previous.length === 0) return current;
-  const previousBySymbol = new Map(previous.map((item) => [item.symbol, item]));
-
-  return current.map((item) => {
-    if (Number.isFinite(item.changePct)) return item;
-    const prior = previousBySymbol.get(item.symbol);
-    if (!prior) return item;
-    const derived = deriveChangePctFromPrevious(item.price, prior.price);
-    return Number.isFinite(derived) ? { ...item, changePct: derived } : item;
-  });
 }
 
 async function fetchMetalViaBackend(symbol: "XAU" | "XAG" | "XPT", signal: AbortSignal) {
@@ -269,26 +248,6 @@ async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: F
   }
 }
 
-function getLastLiveTickers() {
-  try {
-    const raw = window.localStorage.getItem(LAST_LIVE_TICKERS_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { tickers?: TickerItem[] };
-    if (!Array.isArray(parsed?.tickers) || parsed.tickers.length !== UNAVAILABLE_TICKERS.length) return null;
-    return parsed.tickers;
-  } catch {
-    return null;
-  }
-}
-
-function saveLastLiveTickers(tickers: TickerItem[]) {
-  try {
-    window.localStorage.setItem(LAST_LIVE_TICKERS_KEY, JSON.stringify({ tickers, updatedAt: Date.now() }));
-  } catch {
-    // No-op: storage can fail in private mode or restricted environments.
-  }
-}
-
 export default function TrendingTickersBar() {
   const [tickers, setTickers] = useState<TickerItem[]>(UNAVAILABLE_TICKERS);
   const [fetchStatus, setFetchStatus] = useState<FetchStatus>("API_DOWN");
@@ -301,15 +260,8 @@ export default function TrendingTickersBar() {
     const load = async () => {
       const { tickers: next, status } = await fetchMineralTickers();
       if (!isMounted) return;
-      const previousLive = getLastLiveTickers();
-      const normalized = fillMissingChangePct(next, previousLive);
-      if (status === "LIVE") {
-        setTickers(normalized);
-        saveLastLiveTickers(normalized);
-      } else {
-        setTickers(previousLive ?? normalized ?? UNAVAILABLE_TICKERS);
-        console.warn(`[Ticker] API failed: ${status}`);
-      }
+      setTickers(next ?? UNAVAILABLE_TICKERS);
+      if (status !== "LIVE") console.warn(`[Ticker] API failed: ${status}`);
       setFetchStatus(status);
     };
 
