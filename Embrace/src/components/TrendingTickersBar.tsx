@@ -9,10 +9,12 @@ type TickerItem = {
   changePct: number;
 };
 
-const IS_PRODUCTION = import.meta.env.PROD;
+const API_ROUTE = "/api/price";
 const MINERAL_API_BASE_URL = ((import.meta.env.VITE_MINERAL_API_BASE_URL as string | undefined)?.trim() || "https://www.goldapi.io/api").replace(/\/+$/, "");
 const MINERAL_API_KEY = (import.meta.env.VITE_MINERAL_API_KEY as string | undefined)?.trim();
-const DIAMOND_FALLBACK = { price: 5140, changePct: 0 };
+const PUBLIC_METALS_API_BASE_URL = "https://api.gold-api.com/price";
+const DIAMOND_INDEX_API_URL = "https://data.openfacet.net/index.json";
+const DIAMOND_FALLBACK = { price: Number.NaN, changePct: Number.NaN };
 
 const UNAVAILABLE_TICKERS: TickerItem[] = [
   { name: "Gold", symbol: "XAU", price: Number.NaN, unit: "/oz", changePct: Number.NaN },
@@ -45,62 +47,155 @@ function parseNumeric(value: unknown): number {
   return Number.NaN;
 }
 
-async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: FetchStatus }> {
+function deriveChangePctFromPrevious(currentPrice: number, previousPrice: number) {
+  if (!Number.isFinite(currentPrice) || !Number.isFinite(previousPrice) || previousPrice === 0) {
+    return Number.NaN;
+  }
+  return ((currentPrice - previousPrice) / previousPrice) * 100;
+}
+
+function fillMissingChangePct(current: TickerItem[], previous: TickerItem[] | null) {
+  if (!previous || previous.length === 0) return current;
+  const previousBySymbol = new Map(previous.map((item) => [item.symbol, item]));
+
+  return current.map((item) => {
+    if (Number.isFinite(item.changePct)) return item;
+    const prior = previousBySymbol.get(item.symbol);
+    if (!prior) return item;
+    const derived = deriveChangePctFromPrevious(item.price, prior.price);
+    return Number.isFinite(derived) ? { ...item, changePct: derived } : item;
+  });
+}
+
+async function fetchMetalViaBackend(symbol: "XAU" | "XAG" | "XPT", signal: AbortSignal) {
+  try {
+    const response = await fetch(`${API_ROUTE}?symbol=${symbol}`, {
+      method: "GET",
+      signal,
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!response.ok) return { price: NaN, chp: NaN, live: false };
+    const data = await response.json();
+    const price = Number(data?.price);
+    const chp = Number(data?.chp);
+    return {
+      price,
+      chp,
+      live: Number.isFinite(price) && Number.isFinite(chp),
+    };
+  } catch {
+    return { price: NaN, chp: NaN, live: false };
+  }
+}
+
+async function fetchMetalsViaBackend(signal: AbortSignal) {
+  const [goldData, silverData, platinumData] = await Promise.all([
+    fetchMetalViaBackend("XAU", signal),
+    fetchMetalViaBackend("XAG", signal),
+    fetchMetalViaBackend("XPT", signal),
+  ]);
+
+  return { goldData, silverData, platinumData };
+}
+
+async function fetchMetalViaPublic(symbol: "XAU" | "XAG" | "XPT", signal: AbortSignal) {
+  try {
+    const response = await fetch(`${PUBLIC_METALS_API_BASE_URL}/${symbol}`, {
+      method: "GET",
+      signal,
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!response.ok) return { price: NaN, chp: NaN, live: false };
+    const data = await response.json();
+    const price = Number(data?.price);
+    return {
+      price,
+      chp: Number.NaN,
+      live: Number.isFinite(price),
+    };
+  } catch {
+    return { price: NaN, chp: NaN, live: false };
+  }
+}
+
+async function fetchMetalsViaPublic(signal: AbortSignal) {
+  const [goldData, silverData, platinumData] = await Promise.all([
+    fetchMetalViaPublic("XAU", signal),
+    fetchMetalViaPublic("XAG", signal),
+    fetchMetalViaPublic("XPT", signal),
+  ]);
+
+  return { goldData, silverData, platinumData };
+}
+
+async function fetchMetalsDirect(signal: AbortSignal) {
   if (!MINERAL_API_KEY) {
-    console.error("[Ticker] VITE_MINERAL_API_KEY is undefined or empty", { apiKey: MINERAL_API_KEY });
-    return { tickers: UNAVAILABLE_TICKERS, status: "API_DOWN" };
+    return {
+      goldData: { price: NaN, chp: NaN, live: false },
+      silverData: { price: NaN, chp: NaN, live: false },
+      platinumData: { price: NaN, chp: NaN, live: false },
+    };
   }
 
+  const requestOptions: RequestInit = {
+    method: "GET",
+    signal,
+    headers: {
+      "x-access-token": MINERAL_API_KEY,
+      "Content-Type": "application/json",
+    },
+  };
+
+  const [goldRes, silverRes, platinumRes] = await Promise.allSettled([
+    fetch(`${MINERAL_API_BASE_URL}/XAU/USD`, requestOptions),
+    fetch(`${MINERAL_API_BASE_URL}/XAG/USD`, requestOptions),
+    fetch(`${MINERAL_API_BASE_URL}/XPT/USD`, requestOptions),
+  ]);
+
+  const parseMetalPrice = async (result: PromiseSettledResult<Response>) => {
+    if (result.status !== "fulfilled" || !result.value.ok) {
+      return { price: NaN, chp: NaN, live: false };
+    }
+    try {
+      const data = await result.value.json();
+      const price = Number(data?.price);
+      const chp = Number(data?.chp);
+      return {
+        price,
+        chp,
+        live: Number.isFinite(price) && Number.isFinite(chp),
+      };
+    } catch {
+      return { price: NaN, chp: NaN, live: false };
+    }
+  };
+
+  const [goldData, silverData, platinumData] = await Promise.all([
+    parseMetalPrice(goldRes),
+    parseMetalPrice(silverRes),
+    parseMetalPrice(platinumRes),
+  ]);
+
+  return { goldData, silverData, platinumData };
+}
+
+async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: FetchStatus }> {
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
   try {
-    console.info("[Ticker] Using VITE_MINERAL_API_KEY", { apiKey: MINERAL_API_KEY });
-    const requestOptions: RequestInit = {
-      method: "GET",
-      signal: controller.signal,
-      headers: {
-        "x-access-token": MINERAL_API_KEY,
-        "Content-Type": "application/json",
-      },
-    };
-
-    const [goldRes, silverRes, platinumRes, diamondRes] = await Promise.allSettled([
-      fetch(`${MINERAL_API_BASE_URL}/XAU/USD`, requestOptions),
-      fetch(`${MINERAL_API_BASE_URL}/XAG/USD`, requestOptions),
-      fetch(`${MINERAL_API_BASE_URL}/XPT/USD`, requestOptions),
-      fetch("https://openfacet.net/api/index.json", { method: "GET", signal: controller.signal }),
+    const [backendMetals, diamondRes] = await Promise.all([
+      fetchMetalsViaBackend(controller.signal),
+      fetch(DIAMOND_INDEX_API_URL, { method: "GET", signal: controller.signal }),
     ]);
 
-    const parseMetalPrice = async (result: PromiseSettledResult<Response>) => {
-      if (result.status !== "fulfilled" || !result.value.ok) {
-        return { price: NaN, chp: NaN, live: false };
-      }
-      try {
-        const data = await result.value.json();
-        console.info("[Ticker] API response", data);
-        const price = Number(data?.price);
-        const chp = Number(data?.chp);
-        if (IS_PRODUCTION) {
-          console.info("[Ticker] Production API payload", { symbol: data?.symbol, price: data?.price, chp: data?.chp });
-        }
-        return {
-          price,
-          chp,
-          live: Number.isFinite(price) && Number.isFinite(chp),
-        };
-      } catch {
-        return { price: NaN, chp: NaN, live: false };
-      }
-    };
-
-    const parseDiamondPrice = async (result: PromiseSettledResult<Response>) => {
-      if (result.status !== "fulfilled" || !result.value.ok) {
+    const parseDiamondPrice = async (response: Response) => {
+      if (!response.ok) {
         return { price: DIAMOND_FALLBACK.price, changePct: DIAMOND_FALLBACK.changePct, live: false };
       }
 
       try {
-        const data = await result.value.json();
+        const data = await response.json();
         const dcx = parseNumeric(data?.dcx);
         const trend = parseNumeric(data?.trend);
 
@@ -114,20 +209,28 @@ async function fetchMineralTickers(): Promise<{ tickers: TickerItem[]; status: F
       }
     };
 
-    const [goldData, silverData, platinumData, diamondData] = await Promise.all([
-      parseMetalPrice(goldRes),
-      parseMetalPrice(silverRes),
-      parseMetalPrice(platinumRes),
-      parseDiamondPrice(diamondRes),
-    ]);
+    const diamondData = await parseDiamondPrice(diamondRes);
+    let { goldData, silverData, platinumData } = backendMetals;
 
-    const hasAllMetalsLive = goldData.live && silverData.live && platinumData.live;
-    if (!hasAllMetalsLive) {
-      return { tickers: UNAVAILABLE_TICKERS, status: "API_DOWN" };
+    const backendHasAllMetals = goldData.live && silverData.live && platinumData.live;
+    if (!backendHasAllMetals) {
+      const publicMetals = await fetchMetalsViaPublic(controller.signal);
+      if (publicMetals.goldData.live) goldData = publicMetals.goldData;
+      if (publicMetals.silverData.live) silverData = publicMetals.silverData;
+      if (publicMetals.platinumData.live) platinumData = publicMetals.platinumData;
     }
 
+    const hasAllFromBackendOrPublic = goldData.live && silverData.live && platinumData.live;
+    if (!hasAllFromBackendOrPublic) {
+      const directMetals = await fetchMetalsDirect(controller.signal);
+      if (directMetals.goldData.live) goldData = directMetals.goldData;
+      if (directMetals.silverData.live) silverData = directMetals.silverData;
+      if (directMetals.platinumData.live) platinumData = directMetals.platinumData;
+    }
+
+    const hasAllMetals = goldData.live && silverData.live && platinumData.live;
     return {
-      status: "LIVE",
+      status: hasAllMetals ? "LIVE" : "API_DOWN",
       tickers: [
         {
           name: "Gold",
@@ -198,12 +301,13 @@ export default function TrendingTickersBar() {
     const load = async () => {
       const { tickers: next, status } = await fetchMineralTickers();
       if (!isMounted) return;
+      const previousLive = getLastLiveTickers();
+      const normalized = fillMissingChangePct(next, previousLive);
       if (status === "LIVE") {
-        setTickers(next);
-        saveLastLiveTickers(next);
+        setTickers(normalized);
+        saveLastLiveTickers(normalized);
       } else {
-        const lastLive = getLastLiveTickers();
-        setTickers(lastLive ?? next ?? UNAVAILABLE_TICKERS);
+        setTickers(previousLive ?? normalized ?? UNAVAILABLE_TICKERS);
         console.warn(`[Ticker] API failed: ${status}`);
       }
       setFetchStatus(status);
