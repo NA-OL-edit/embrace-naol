@@ -1,5 +1,5 @@
 import { FadeUp, SlideIn } from '@/components/AnimationWrappers';
-import aboutBg from '@/assets/about-bg.jpg';
+import aboutBg from '@/assets/portfolio/custom/about-bg.jpg';
 
 const milestones = [
   { year: '1998', title: 'Founded', desc: 'Established as a boutique gold refinery in California.' },

@@ -4,10 +4,10 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Gem, Flame, Shield, Award } from 'lucide-react';
 import HeroScene from '@/components/HeroScene';
 import { FadeUp, ScaleIn } from '@/components/AnimationWrappers';
-import heroBg from '@/assets/hero-bg.jpg';
-import portfolio1 from '@/assets/portfolio-1.jpg';
-import portfolio2 from '@/assets/portfolio-2.jpg';
-import portfolio3 from '@/assets/portfolio-3.jpg';
+import heroBg from '@/assets/portfolio/custom/hero-bg.jpg';
+import portfolio1 from '@/assets/portfolio/casting/portfolio-1.jpg';
+import portfolio2 from '@/assets/portfolio/refining/portfolio-2.jpg';
+import portfolio3 from '@/assets/portfolio/refining/portfolio-3.jpg';
 
 const stats = [
   { value: '99.99%', label: 'Purity Guaranteed' },
