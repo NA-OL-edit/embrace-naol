@@ -102,6 +102,39 @@
     background-attachment: fixed;
   }
 
+  main > section:first-of-type {
+    background-image: url('assets/back.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #0f0c08;
+  }
+
+  main > section:first-of-type > div.absolute.inset-0 > img {
+    display: none;
+  }
+
+  main > section:first-of-type > div.absolute.inset-0 > div {
+    display: none;
+  }
+
+  main > section:first-of-type {
+    position: relative;
+    background-color: hsl(var(--obsidian));
+  }
+
+  main > section:first-of-type::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('assets/back.png');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 0;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
   }

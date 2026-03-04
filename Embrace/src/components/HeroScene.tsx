@@ -138,7 +138,10 @@ function Particles() {
 
 export default function HeroScene() {
   return (
-    <div className="absolute inset-0 z-0">
+    <div
+      className="absolute inset-0 z-0"
+      style={{ backgroundImage: "url('/assets/back.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}
+    >
       <Canvas
         camera={{ position: [0, 0, 6], fov: 50 }}
         gl={{ antialias: true, alpha: true }}

@@ -1,8 +1,6 @@
-import { Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Gem, Flame, Shield, Award } from 'lucide-react';
-import HeroScene from '@/components/HeroScene';
 import { FadeUp, ScaleIn } from '@/components/AnimationWrappers';
 import heroBg from '@/assets/portfolio/custom/hero-bg.jpg';
 import portfolio1 from '@/assets/portfolio/casting/portfolio-1.jpg';
@@ -34,11 +32,6 @@ export default function Index() {
           <div className="absolute inset-0" style={{ background: 'var(--gradient-dark)' }} />
           <div className="absolute inset-0" style={{ background: 'var(--gradient-radial-gold)' }} />
         </div>
-
-        {/* 3D Scene */}
-        <Suspense fallback={null}>
-          <HeroScene />
-        </Suspense>
 
         {/* Hero Content */}
         <div className="relative z-10 mx-auto max-w-7xl px-6 py-32 md:px-12">
