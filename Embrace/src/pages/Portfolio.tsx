@@ -91,6 +91,9 @@ export default function Portfolio() {
   const [savedProjects, setSavedProjects] = useState<Record<string, boolean>>({});
   const [loadingAction, setLoadingAction] = useState<'reserve' | 'enquire' | null>(null);
   const [activePopup, setActivePopup] = useState<'reserve' | null>(null);
+  const [reserveStep, setReserveStep] = useState<'confirm' | 'form' | 'thankyou'>('confirm');
+  const [inquiryForm, setInquiryForm] = useState({ name: '', email: '', message: '' });
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'error'>('idle');
   const navigate = useNavigate();
 
   const categories = ['All', ...Array.from(new Set(projects.map((p) => p.cat)))];
@@ -165,6 +168,13 @@ export default function Portfolio() {
     await new Promise((resolve) => setTimeout(resolve, 700));
     setLoadingAction(null);
     setActivePopup('reserve');
+    setReserveStep('confirm');
+    setInquiryForm({
+      name: '',
+      email: '',
+      message: `I am interested in reserving the ${selected?.title || 'item'}.`,
+    });
+    setSubmitStatus('idle');
   };
 
   const handleEnquireClick = async () => {
@@ -407,33 +417,143 @@ export default function Portfolio() {
                       aria-modal="true"
                       aria-label="Reservation confirmation"
                     >
-                      <h3 className="font-display text-2xl text-primary">Reservation Initiated</h3>
-                      <p className="mt-3 font-body text-sm text-foreground">
-                        Your reservation request for <span className="text-primary">{selected.title}</span> has been started.
-                        Our team will contact you shortly.
-                      </p>
-                      <div className="mt-6 flex gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setActivePopup(null)}
-                          className="inline-flex h-11 min-h-[44px] w-full items-center justify-center border border-primary bg-transparent px-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary/10 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                          aria-label="Close reservation confirmation"
-                        >
-                          Close
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActivePopup(null);
-                            setSelected(null);
-                            navigate('/contact');
+                      {reserveStep === 'confirm' && (
+                        <>
+                          <h3 className="font-display text-2xl text-primary">Reservation Initiated</h3>
+                          <p className="mt-3 font-body text-sm text-foreground">
+                            Your reservation request for <span className="text-primary">{selected.title}</span> has been started.
+                            Our team will contact you shortly.
+                          </p>
+                          <div className="mt-6 flex gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setActivePopup(null)}
+                              className="inline-flex h-11 min-h-[44px] w-full items-center justify-center border border-primary bg-transparent px-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary/10 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              aria-label="Close reservation confirmation"
+                            >
+                              Close
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setReserveStep('form');
+                                setInquiryForm((prev) => ({
+                                  ...prev,
+                                  message: `I am interested in reserving the ${selected.title}.`,
+                                }));
+                              }}
+                              className="inline-flex h-11 min-h-[44px] w-full items-center justify-center border border-primary bg-primary px-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground transition-all hover:shadow-gold active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              aria-label="Continue to inquiry form"
+                            >
+                              Continue
+                            </button>
+                          </div>
+                        </>
+                      )}
+
+                      {reserveStep === 'form' && (
+                        <form
+                          className="space-y-4"
+                          onSubmit={async (e) => {
+                            e.preventDefault();
+                            if (submitStatus === 'submitting') return;
+                            setSubmitStatus('submitting');
+
+                            try {
+                              const response = await fetch('https://webhook.latenode.com/90937/dev/2474c665-72b9-44e5-901f-bb51cdbfaa09', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  customerName: inquiryForm.name,
+                                  customerEmail: inquiryForm.email,
+                                  productName: selected?.title || 'Unknown Item',
+                                }),
+                              });
+
+                              if (response.status === 200) {
+                                setReserveStep('thankyou');
+                                setSubmitStatus('idle');
+                              } else {
+                                setSubmitStatus('error');
+                              }
+                            } catch {
+                              setSubmitStatus('error');
+                            }
                           }}
-                          className="inline-flex h-11 min-h-[44px] w-full items-center justify-center border border-primary bg-primary px-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground transition-all hover:shadow-gold active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                          aria-label="Continue to contact page"
                         >
-                          Continue
-                        </button>
-                      </div>
+                          <h3 className="font-display text-2xl text-primary">Inquiry Details</h3>
+                          <div className="space-y-3">
+                            <input
+                              type="text"
+                              name="name"
+                              placeholder="Name"
+                              value={inquiryForm.name}
+                              onChange={(e) => setInquiryForm((prev) => ({ ...prev, name: e.target.value }))}
+                              className="h-11 w-full border border-primary/50 bg-transparent px-4 font-display text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                              required
+                            />
+                            <input
+                              type="email"
+                              name="email"
+                              placeholder="Email"
+                              value={inquiryForm.email}
+                              onChange={(e) => setInquiryForm((prev) => ({ ...prev, email: e.target.value }))}
+                              className="h-11 w-full border border-primary/50 bg-transparent px-4 font-display text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                              required
+                            />
+                            <textarea
+                              name="message"
+                              value={inquiryForm.message}
+                              onChange={(e) => setInquiryForm((prev) => ({ ...prev, message: e.target.value }))}
+                              rows={4}
+                              className="w-full resize-none border border-primary/50 bg-transparent px-4 py-3 font-display text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                              required
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setActivePopup(null)}
+                              className="inline-flex h-11 min-h-[44px] w-full items-center justify-center border border-primary bg-transparent px-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary/10 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              aria-label="Close inquiry form"
+                            >
+                              Close
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={submitStatus === 'submitting'}
+                              className="inline-flex h-11 min-h-[44px] w-full items-center justify-center border border-primary bg-primary px-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground transition-all hover:shadow-gold active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              aria-label="Submit inquiry"
+                            >
+                              {submitStatus === 'submitting' ? 'Notifying Concierge...' : 'Submit'}
+                            </button>
+                          </div>
+                          {submitStatus === 'error' && (
+                            <p className="font-body text-xs uppercase tracking-[0.2em] text-primary/80">
+                              System busy. Please try again
+                            </p>
+                          )}
+                        </form>
+                      )}
+
+                      {reserveStep === 'thankyou' && (
+                        <>
+                          <h3 className="font-display text-2xl text-primary">Thank You</h3>
+                          <p className="mt-3 font-body text-sm text-foreground">
+                            Thank you, our concierge will contact you shortly.
+                          </p>
+                          <div className="mt-6">
+                            <button
+                              type="button"
+                              onClick={() => setActivePopup(null)}
+                              className="inline-flex h-11 min-h-[44px] w-full items-center justify-center border border-primary bg-primary px-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground transition-all hover:shadow-gold active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              aria-label="Close thank you message"
+                            >
+                              Close
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </motion.div>
                   </motion.div>
                 )}
