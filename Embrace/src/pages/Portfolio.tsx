@@ -93,7 +93,6 @@ export default function Portfolio() {
   const [activePopup, setActivePopup] = useState<'reserve' | null>(null);
   const [reserveStep, setReserveStep] = useState<'confirm' | 'form' | 'thankyou'>('confirm');
   const [inquiryForm, setInquiryForm] = useState({ name: '', email: '', message: '' });
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'error'>('idle');
   const navigate = useNavigate();
 
   const categories = ['All', ...Array.from(new Set(projects.map((p) => p.cat)))];
@@ -174,7 +173,6 @@ export default function Portfolio() {
       email: '',
       message: `I am interested in reserving the ${selected?.title || 'item'}.`,
     });
-    setSubmitStatus('idle');
   };
 
   const handleEnquireClick = async () => {
@@ -454,31 +452,9 @@ export default function Portfolio() {
                       {reserveStep === 'form' && (
                         <form
                           className="space-y-4"
-                          onSubmit={async (e) => {
+                          onSubmit={(e) => {
                             e.preventDefault();
-                            if (submitStatus === 'submitting') return;
-                            setSubmitStatus('submitting');
-
-                            try {
-                              const response = await fetch('https://webhook.latenode.com/90937/dev/2474c665-72b9-44e5-901f-bb51cdbfaa09', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                  customerName: inquiryForm.name,
-                                  customerEmail: inquiryForm.email,
-                                  productName: selected?.title || 'Unknown Item',
-                                }),
-                              });
-
-                              if (response.status === 200) {
-                                setReserveStep('thankyou');
-                                setSubmitStatus('idle');
-                              } else {
-                                setSubmitStatus('error');
-                              }
-                            } catch {
-                              setSubmitStatus('error');
-                            }
+                            setReserveStep('thankyou');
                           }}
                         >
                           <h3 className="font-display text-2xl text-primary">Inquiry Details</h3>
@@ -521,18 +497,12 @@ export default function Portfolio() {
                             </button>
                             <button
                               type="submit"
-                              disabled={submitStatus === 'submitting'}
                               className="inline-flex h-11 min-h-[44px] w-full items-center justify-center border border-primary bg-primary px-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground transition-all hover:shadow-gold active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                               aria-label="Submit inquiry"
                             >
-                              {submitStatus === 'submitting' ? 'Notifying Concierge...' : 'Submit'}
+                              Submit
                             </button>
                           </div>
-                          {submitStatus === 'error' && (
-                            <p className="font-body text-xs uppercase tracking-[0.2em] text-primary/80">
-                              System busy. Please try again
-                            </p>
-                          )}
                         </form>
                       )}
 
@@ -545,7 +515,11 @@ export default function Portfolio() {
                           <div className="mt-6">
                             <button
                               type="button"
-                              onClick={() => setActivePopup(null)}
+                              onClick={() => {
+                                setActivePopup(null);
+                                setSelected(null);
+                                setReserveStep('confirm');
+                              }}
                               className="inline-flex h-11 min-h-[44px] w-full items-center justify-center border border-primary bg-primary px-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground transition-all hover:shadow-gold active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                               aria-label="Close thank you message"
                             >
