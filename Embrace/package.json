@@ -11,7 +11,11 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "media:manifest": "node scripts/generate-media-manifest.mjs"
+    "media:manifest": "node scripts/generate-media-manifest.mjs",
+    "portfolio:array": "node scripts/generate-portfolio-array.mjs",
+    "portfolio:array:ai": "node scripts/generate-portfolio-array.mjs --classify true",
+    "portfolio:array:ai:raw": "node scripts/generate-portfolio-array.mjs --dir src/assets/portfolio/raw --classify true --aiCategoryOnly true --pathPrefix raw",
+    "portfolio:array:ai:raw:rename": "node scripts/generate-portfolio-array.mjs --dir src/assets/portfolio/raw --classify true --aiCategoryOnly true --rename true --pathPrefix raw"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

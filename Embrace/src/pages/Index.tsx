@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Gem, Flame, Shield, Award } from 'lucide-react';
 import { FadeUp, ScaleIn } from '@/components/AnimationWrappers';
+import HeroScene from '@/components/HeroScene';
 import heroBg from '@/assets/portfolio/custom/hero-bg.jpg';
 import portfolio1 from '@/assets/portfolio/casting/portfolio-1.jpg';
 import portfolio2 from '@/assets/portfolio/refining/portfolio-2.jpg';
@@ -28,7 +29,8 @@ export default function Index() {
       <section className="relative flex min-h-screen items-center overflow-hidden">
         {/* Background image with overlay */}
         <div className="absolute inset-0">
-          <img fetchPriority="high" src={heroBg} alt="" className="h-full w-full object-cover" />
+          <img fetchPriority="high" src={heroBg} alt="" className="h-full w-full object-cover opacity-35" />
+          <HeroScene />
           <div className="absolute inset-0" style={{ background: 'var(--gradient-dark)' }} />
           <div className="absolute inset-0" style={{ background: 'var(--gradient-radial-gold)' }} />
         </div>

@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react';
+import { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, Environment } from '@react-three/drei';
 import * as THREE from 'three';
@@ -93,16 +93,17 @@ function GlassPanel({ position, rotation }: { position: [number, number, number]
 function Particles() {
   const count = 60;
   const ref = useRef<THREE.Points>(null);
-  
-  const positions = useMemo(() => {
+  const positionsRef = useRef<Float32Array | null>(null);
+
+  if (!positionsRef.current) {
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
       pos[i * 3] = (Math.random() - 0.5) * 12;
       pos[i * 3 + 1] = (Math.random() - 0.5) * 8;
       pos[i * 3 + 2] = (Math.random() - 0.5) * 6;
     }
-    return pos;
-  }, []);
+    positionsRef.current = pos;
+  }
 
   useFrame((state) => {
     if (ref.current) {
@@ -121,7 +122,7 @@ function Particles() {
         <bufferAttribute
           attach="attributes-position"
           count={count}
-          array={positions}
+          array={positionsRef.current!}
           itemSize={3}
         />
       </bufferGeometry>

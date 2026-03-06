@@ -4,24 +4,6 @@ import { Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FadeUp } from '@/components/AnimationWrappers';
 import { listMedia, type MediaImage } from '@/lib/media';
-import f1Img from '@/assets/portfolio/custom/f (1).jpg';
-import f3Img from '@/assets/portfolio/custom/f (3).jpg';
-import f4Img from '@/assets/portfolio/refining/f (4).jpg';
-import g12Img from '@/assets/portfolio/casting/g1 (2).png';
-import g13Img from '@/assets/portfolio/refining/g1 (3).png';
-import g14Img from '@/assets/portfolio/casting/g1 (4).png';
-import g15Img from '@/assets/portfolio/custom/g1 (5).png';
-import g16Img from '@/assets/portfolio/casting/g1 (6).png';
-import g17Img from '@/assets/portfolio/casting/g1 (7).png';
-import g18Img from '@/assets/portfolio/custom/g1 (8).png';
-import geminiImg from '@/assets/portfolio/casting/Custom.png';
-import p1Img from '@/assets/portfolio/refining/p (1).png';
-import p2Img from '@/assets/portfolio/refining/p (2).png';
-import p3Img from '@/assets/portfolio/custom/p (3).png';
-import p4Img from '@/assets/portfolio/refining/p (4).png';
-import p5Img from '@/assets/portfolio/casting/p (5).png';
-import p6Img from '@/assets/portfolio/custom/p (6).png';
-import p7Img from '@/assets/portfolio/refining/portfolio-3.jpg';
 
 const SAVED_PROJECTS_KEY = 'savedPortfolioProjects';
 
@@ -36,30 +18,60 @@ type Project = {
   desc: string;
 };
 
-const fallbackProjects: Project[] = [
-  // REFINING (6)
-  { id: 'molten-pour', img: f4Img, alt: 'Molten Pour', title: 'Molten Pour', cat: 'Refining', desc: 'Precision gold casting into industrial molds' },
-  { id: 'diamond-selection', img: p1Img, alt: 'Diamond Selection', title: 'Diamond Selection', cat: 'Refining', desc: 'Raw and brilliant-cut diamonds in luxury display' },
-  { id: 'heritage-necklace', img: p7Img, alt: 'Heritage Necklace', title: 'Heritage Necklace', cat: 'Refining', desc: 'Bespoke diamond and gold statement piece' },
-  { id: 'masterpiece-collection', img: p2Img, alt: 'Masterpiece Collection', title: 'Masterpiece Collection', cat: 'Refining', desc: 'Curated emerald-cut diamond gallery display' },
-  { id: 'asscher-solitaire', img: p4Img, alt: 'Asscher Solitaire', title: 'Asscher Solitaire', cat: 'Refining', desc: 'Monumental Asscher-cut diamond in vault presentation' },
-  { id: 'signature-cuban', img: g13Img, alt: 'Signature Cuban', title: 'Signature Cuban', cat: 'Refining', desc: 'Heavy-gauge gold link with mirror-polish finish' },
+const localImageModules = import.meta.glob('../assets/portfolio/**/*.{png,jpg,jpeg,webp,avif}', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>;
 
-  // CASTING (6)
-  { id: 'cuban-bracelet', img: g12Img, alt: 'Cuban Bracelet', title: 'Cuban Bracelet', cat: 'Casting', desc: 'Miami Cuban link with high-security box clasp' },
-  { id: 'pyramid-signet', img: g14Img, alt: 'Pyramid Signet', title: 'Pyramid Signet', cat: 'Casting', desc: 'Architectural 18K gold ring with center diamond' },
-  { id: 'cuban-heirloom', img: g16Img, alt: 'Cuban Heirloom', title: 'Cuban Heirloom', cat: 'Casting', desc: 'Solid gold chain with crown-engraved insignia' },
-  { id: 'divine-icon', img: g17Img, alt: 'Divine Icon', title: 'Divine Icon', cat: 'Casting', desc: 'Diamond-encrusted Jesus piece on heavy gold chain' },
-  { id: 'radiant-twist', img: p5Img, alt: 'Radiant Twist', title: 'Radiant Twist', cat: 'Casting', desc: 'Radiant-cut diamond in rose gold infinity swirl' },
-  { id: 'celestial-signet', img: geminiImg, alt: 'Celestial Signet', title: 'Celestial Signet', cat: 'Casting', desc: '3D-engineered 18K gold star-motif signet' },
-  // CUSTOM (6)
-  { id: 'artisan-band-set', img: f1Img, alt: 'Artisan Band Set', title: 'Artisan Band Set', cat: 'Custom', desc: '24K Four distinct gold bands with diamond accents' },
-  { id: 'signature-link', img: f3Img, alt: 'Signature Link', title: 'Signature Link', cat: 'Custom', desc: 'Classic heavy-gauge gold link chain with a high-polish finish' },
-  { id: 'monarch-cuban', img: g15Img, alt: 'Monarch Cuban', title: 'Monarch Cuban', cat: 'Custom', desc: 'Substantial 10K gold chain with a crown-engraved box clasp' },
-  { id: 'channel-solitaire', img: g18Img, alt: 'Channel Solitaire', title: 'Channel Solitaire', cat: 'Custom', desc: 'Round brilliant diamond in an 18K channel-set diamond band' },
-  { id: 'jewelry-showcase', img: p3Img, alt: 'Jewelry Showcase', title: 'Jewelry Showcase', cat: 'Custom', desc: 'Bespoke diamond rings featuring oval and emerald master-cuts' },
-  { id: 'stardust-cuff', img: p6Img, alt: 'Stardust Cuff', title: 'Stardust Cuff', cat: 'Custom', desc: 'Polished white gold cuff with star-set brilliant diamonds' },
-];
+function toTitle(value: string) {
+  return value
+    .replace(/\.[^.]+$/, '')
+    .replace(/[()]/g, ' ')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function toSlug(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function categoryFromPath(relativePath: string) {
+  const folder = (relativePath.split('/')[0] || '').toLowerCase();
+  if (folder === 'casting') return 'Casting';
+  if (folder === 'refining') return 'Refining';
+  return 'Custom';
+}
+
+function descriptionFromCategory(cat: string) {
+  if (cat === 'Casting') return 'High-precision casting engineered for timeless luxury pieces';
+  if (cat === 'Refining') return 'Precision gold refining with premium finishing details';
+  return 'Bespoke custom design crafted for signature statements';
+}
+
+const fallbackProjects: Project[] = Object.entries(localImageModules)
+  .map(([modulePath, img], index) => {
+    const relativePath = modulePath.replace('../assets/portfolio/', '');
+    const name = relativePath.split('/').pop() || relativePath;
+    const title = toTitle(name);
+    const cat = categoryFromPath(relativePath);
+    return {
+      id: `${toSlug(relativePath)}-${index + 1}`,
+      img,
+      alt: title,
+      title,
+      cat,
+      desc: descriptionFromCategory(cat),
+    };
+  })
+  .filter((item) => {
+    const t = item.title.toLowerCase();
+    return t !== 'hero bg' && t !== 'about bg' && t !== 'logo';
+  });
 
 function mapMediaImageToProject(image: MediaImage): Project {
   return {
