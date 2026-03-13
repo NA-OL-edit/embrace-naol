@@ -185,15 +185,17 @@ function hasCatalogMatch(project: Project) {
   );
 }
 
-const PORTFOLIO_EXCLUDE = new Set(['p (7).png', 'portfolio-4.jpg', 'f (4).jpg']);
+const PORTFOLIO_EXCLUDE_IDS = new Set(['p (7).png', 'portfolio-4.jpg', 'f (4).jpg']);
 
 function isModalAllowed(project: Project | null) {
   return !!project;
 }
 
 function isPortfolioExcluded(project: Project) {
+  const catalogItem = findCatalogItem(project);
+  if (catalogItem && PORTFOLIO_EXCLUDE_IDS.has(catalogItem.id)) return true;
   const fileName = getFileNameFromSrc(project.imgLarge || project.imgMedium || project.img);
-  return fileName ? PORTFOLIO_EXCLUDE.has(fileName) : false;
+  return fileName ? PORTFOLIO_EXCLUDE_IDS.has(fileName) : false;
 }
 
 const fallbackProjects: Project[] = Object.entries(localImageModules)
