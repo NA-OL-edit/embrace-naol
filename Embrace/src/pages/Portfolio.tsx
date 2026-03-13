@@ -186,6 +186,7 @@ function hasCatalogMatch(project: Project) {
 }
 
 const PORTFOLIO_EXCLUDE_IDS = new Set(['p (7).png', 'portfolio-4.jpg', 'f (4).jpg']);
+const PORTFOLIO_EXCLUDE_TITLES = new Set(['p 7', 'portfolio 4', 'f 4']);
 
 function isModalAllowed(project: Project | null) {
   return !!project;
@@ -194,6 +195,8 @@ function isModalAllowed(project: Project | null) {
 function isPortfolioExcluded(project: Project) {
   const catalogItem = findCatalogItem(project);
   if (catalogItem && PORTFOLIO_EXCLUDE_IDS.has(catalogItem.id)) return true;
+  const titleNorm = normalizeForMatch(project.title);
+  if (titleNorm && PORTFOLIO_EXCLUDE_TITLES.has(titleNorm)) return true;
   const fileName = getFileNameFromSrc(project.imgLarge || project.imgMedium || project.img);
   return fileName ? PORTFOLIO_EXCLUDE_IDS.has(fileName) : false;
 }
