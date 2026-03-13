@@ -173,6 +173,13 @@ function findCatalogItem(project: Project | null) {
     if (baseMatch) return baseMatch;
   }
   const baseName = fileName ? stripExtension(fileName) : '';
+  const normalizedTitle = normalizeForMatch(project.title);
+  if (baseName === 'portfolio-2' || normalizedTitle === 'portfolio 2') {
+    return JEWELRY_CATALOG.find((item) => normalizeId(item.id) === 'portfolio-2.jpg') || null;
+  }
+  if (baseName === 'portfolio-3' || normalizedTitle === 'portfolio 3') {
+    return JEWELRY_CATALOG.find((item) => normalizeId(item.id) === 'portfolio-3.jpg') || null;
+  }
   return findSpecByName(project.title, baseName);
 }
 
