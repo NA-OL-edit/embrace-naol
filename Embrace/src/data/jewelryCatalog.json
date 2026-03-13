@@ -1,0 +1,316 @@
+{
+    "jewelryCatalog":  [
+                           {
+                               "id":  "Pavé Band Ring Collection.jpg",
+                               "name":  "Pavé Band Ring Collection",
+                               "shape":  "Circular bands with full/half pavé setting",
+                               "color":  "Yellow Gold",
+                               "clarity":  "VS–VVS simulated pavé stones",
+                               "carat":  "0.20–0.50 cts per ring"
+                           },
+                           {
+                               "id":  "Round Filigree Floral Pendant.jpg",
+                               "name":  "Round Filigree Floral Pendant",
+                               "shape":  "Circular open-work lace pattern",
+                               "color":  "Yellow Gold",
+                               "clarity":  "Metal only; no stones",
+                               "carat":  "Approx. 8–12 grams"
+                           },
+                           {
+                               "id":  "Classic Cuban Link Chain.png",
+                               "name":  "Classic Cuban Link Chain",
+                               "shape":  "Flat interlocking curb links",
+                               "color":  "Yellow Gold",
+                               "clarity":  "Metal only; no stones",
+                               "carat":  "Approx. 80–120 grams"
+                           },
+                           {
+                               "id":  "Heavyweight Cuban Link Bracelet.png",
+                               "name":  "Heavyweight Cuban Link Bracelet",
+                               "shape":  "Wide flat interlocking curb links",
+                               "color":  "Yellow Gold",
+                               "clarity":  "Metal only; no stones",
+                               "carat":  "Approx. 70–100 grams"
+                           },
+                           {
+                               "id":  "Pyramid Step-Cut Signet Ring.png",
+                               "name":  "Pyramid Step-Cut Signet Ring",
+                               "shape":  "Layered geometric pyramid top",
+                               "color":  "Yellow Gold",
+                               "clarity":  "VS simulated accent stone",
+                               "carat":  "0.03–0.05 ct accent"
+                           },
+                           {
+                               "id":  "Premium Cuban Link Set.png",
+                               "name":  "Premium Cuban Link Set",
+                               "shape":  "Wide flat interlocking curb links",
+                               "color":  "Yellow Gold",
+                               "clarity":  "Metal only; no stones",
+                               "carat":  "Approx. 150–220 grams combined"
+                           },
+                           {
+                               "id":  "Box-Clasp Cuban Link Chain.png",
+                               "name":  "Box-Clasp Cuban Link Chain",
+                               "shape":  "Wide flat interlocking curb links",
+                               "color":  "Yellow Gold",
+                               "clarity":  "Metal only; no stones",
+                               "carat":  "Approx. 80–130 grams"
+                           },
+                           {
+                               "id":  "3D Sculpted Portrait Pendant with Cuban Link Chain.png",
+                               "name":  "3D Sculpted Portrait Pendant with Cuban Link Chain",
+                               "shape":  "Full-dimensional sculpted head charm",
+                               "color":  "Yellow Gold",
+                               "clarity":  "VS-style simulated accent stones",
+                               "carat":  "Approx. 1.00–2.00 cts total (accents)"
+                           },
+                           {
+                               "id":  "Solitaire Engagement Ring with Channel Stones.png",
+                               "name":  "Solitaire Engagement Ring with Channel Stones",
+                               "shape":  "Round brilliant center stone with straight channel-set band",
+                               "color":  "Yellow Gold",
+                               "clarity":  "VVS–VS simulated stones",
+                               "carat":  "Center: approx. 1.00–1.25 ct, Side stones: approx. 0.30–0.40 cts total"
+                           },
+                           {
+                               "id":  "Gemini_Generated_Image_72r93p72r93p72r9.png",
+                               "name":  "Star Emblem Signet Ring",
+                               "shape":  "Geometric star-patterned top with raised round centerpiece",
+                               "color":  "Yellow Gold",
+                               "clarity":  "VVS–VS simulated center stone with detailed metal reliefs",
+                               "carat":  "Approx. 1.00–1.50 ct center stone"
+                           },
+                           {
+                               "id":  "Starburst Geometric Signet Ring.png",
+                               "name":  "Starburst Geometric Signet Ring",
+                               "shape":  "Multi-faceted star-patterned signet top with round center stone",
+                               "color":  "Yellow Gold",
+                               "clarity":  "VVS–VS simulated center stone with detailed metal reliefs",
+                               "carat":  "Approx. 1.00–1.50 ct center stone"
+                           },
+                           {
+                               "id":  "Luxury Cut and Rough Gemstone Display Set.png",
+                               "name":  "Luxury Cut and Rough Gemstone Display Set",
+                               "shape":  "Mixed shapes (primarily brilliant-cut round stones and natural rough crystals)",
+                               "color":  "Clear gemstones with natural beige rough stones",
+                               "clarity":  "High-clarity simulated cut stones; natural inclusions in rough stones",
+                               "carat":  "Varied assortment; large showcase-sized stones"
+                           },
+                           {
+                               "id":  "Luxury Gemstone Necklace and Ring Showcase Set.png",
+                               "name":  "Luxury Gemstone Necklace and Ring Showcase Set",
+                               "shape":  "Emerald-cut and brilliant-cut gemstone pendants and rings",
+                               "color":  "Yellow Gold with clear high-brilliance stones",
+                               "clarity":  "VVS-style simulated stones with exceptional transparency",
+                               "carat":  "Large display-sized stones; approx. 5–20 ct per showcased piece"
+                           },
+                           {
+                               "id":  "Luxury Multi-Cut Gemstone Ring Showcase.png",
+                               "name":  "Luxury Multi-Cut Gemstone Ring Showcase",
+                               "shape":  "Mixed shapes including brilliant-cut, oval-cut, cushion-cut, and emerald-cut settings",
+                               "color":  "White gold or platinum appearance with clear high-brilliance stones",
+                               "clarity":  "VVS-style simulated stones with exceptional light dispersion",
+                               "carat":  "Large display stones ranging approximately from 3–10 ct per ring"
+                           },
+                           {
+                               "id":  "Asscher-Cut Luxury Gemstone Ring.png",
+                               "name":  "Asscher-Cut Luxury Gemstone Ring",
+                               "shape":  "Square Asscher-cut step-faceted gemstone",
+                               "color":  "White gold or platinum appearance with clear high-brilliance stone",
+                               "clarity":  "VVS-style simulated stone with pronounced step-cut reflections",
+                               "carat":  "Approx. 8–15 ct center stone (display size)"
+                           },
+                           {
+                               "id":  "Solitaire Engagement Ring with Channel Diamonds.jpg",
+                               "name":  "Solitaire Engagement Ring with Channel Diamonds",
+                               "shape":  "Round brilliant center stone with square channel-set side stones",
+                               "color":  "Yellow Gold",
+                               "clarity":  "VVS–VS simulated stones",
+                               "carat":  "Center approx. 1.00–1.50 ct; sides approx. 0.50–0.80 cts total"
+                           },
+                           {
+                               "id":  "Radiant-Cut Gemstone Swirl Pendant.png",
+                               "name":  "Radiant-Cut Gemstone Swirl Pendant",
+                               "shape":  "Square radiant-cut center stone with curved pavé-set frame",
+                               "color":  "Rose gold with clear high-brilliance stones",
+                               "clarity":  "VVS-style simulated stones with strong light dispersion",
+                               "carat":  "Center stone approx. 3–6 ct; pavé accents approx. 0.20–0.40 cts total"
+                           },
+                           {
+                               "id":  "Constellation Diamond-Style Cuff Bracelet.png",
+                               "name":  "Constellation Diamond-Style Cuff Bracelet",
+                               "shape":  "Wide curved cuff with scattered multi-shape gemstone settings",
+                               "color":  "White gold or platinum appearance",
+                               "clarity":  "VVS-style simulated stones in various cuts",
+                               "carat":  "Approx. 1.50–3.00 cts total (distributed across stones)"
+                           },
+                           {
+                               "id":  "Rose Gold Diamond Miami Cuban Link Bracelet.png",
+                               "name":  "Diamond Pavé Rose Gold Miami Cuban Link Bracelet",
+                               "shape":  "Wide rounded interlocking Cuban links with pavé-set clasp",
+                               "color":  "Rose Gold",
+                               "clarity":  "VVS-style simulated pavé stones",
+                               "carat":  "Approx. 2.50–5.00 cts total (accent stones)"
+                           },
+                           {
+                               "id":  "Yellow Gold Diamond Miami Cuban Link Bracelet.png",
+                               "name":  "Diamond Pavé Miami Cuban Link Bracelet",
+                               "shape":  "Wide rounded interlocking Cuban links with pavé-set clasp",
+                               "color":  "Yellow Gold",
+                               "clarity":  "VVS-style simulated pavé stones",
+                               "carat":  "Approx. 2.50–5.00 cts total (accent stones)"
+                           },
+                           {
+                               "id":  "Mini Yellow Gold Diamond Piece Pendants.png",
+                               "name":  "Yellow Gold Jesus Face Pendant Set",
+                               "shape":  "Sculpted Jesus portrait pendants",
+                               "color":  "Yellow Gold",
+                               "clarity":  "High-polish relief finish (no visible stones)",
+                               "carat":  "Solid metal build; pendant set"
+                           },
+                           {
+                               "id":  "Solid Yellow Gold Miami Cuban Link Necklace.png",
+                               "name":  "High-Polish Cuban Link Chain",
+                               "shape":  "Miami Cuban Link",
+                               "color":  "22k Yellow Gold (appearance)",
+                               "clarity":  "Mirror-finish",
+                               "carat":  "Heavy-gauge solid look"
+                           },
+                           {
+                               "id":  "Custom Eritrea Map Pendant with Diamond Accents.jpg",
+                               "name":  "Custom Eritrea Map Medallion",
+                               "shape":  "Circular disc with raised geographic map",
+                               "color":  "Yellow Gold",
+                               "clarity":  "VS-style simulated diamond accents",
+                               "carat":  "Approx. 0.50–1.00 cts total"
+                           },
+                           {
+                               "id":  "Custom Archangel Michael.png",
+                               "name":  "Archangel Michael Battle Pendant",
+                               "shape":  "3D sculptural figure in arched window frame",
+                               "color":  "Yellow Gold with Silver-Tone Figure",
+                               "clarity":  "VS2-style simulated accents",
+                               "carat":  "Approx. 0.20 cts total"
+                           },
+                           {
+                               "id":  "Stacked Yellow \u0026 White Gold Diamond Cuban Chains.png",
+                               "name":  "Stacked Yellow \u0026 White Gold Diamond Cuban Chains",
+                               "shape":  "Round diamond pavé curb links",
+                               "color":  "Alternating Yellow \u0026 White Gold",
+                               "clarity":  "VS2-style simulated pavé stones",
+                               "carat":  "60+ cts combined (accent stones)"
+                           },
+                           {
+                               "id":  "Mixed Gold Link Bracelet Array.png",
+                               "name":  "Mixed Link Bracelet Array",
+                               "shape":  "Byzantine, Franco, and Rope link styles",
+                               "color":  "Multi-Tone (Yellow / White / Rose)",
+                               "clarity":  "Hand-woven and textured finishes",
+                               "carat":  "Artisan mixed-link set"
+                           },
+                           {
+                               "id":  "Two-Tone Religious.png",
+                               "name":  "Two-Tone Religious Saint Medallion",
+                               "shape":  "Rectangular plaque with raised icon",
+                               "color":  "Yellow Gold frame with White Gold figure",
+                               "clarity":  "VS2-style simulated diamond accents (on frame)",
+                               "carat":  "Approx. 0.30–0.50 cts total"
+                           },
+                           {
+                               "id":  "Modern Solitaire Diamond Ring.png",
+                               "name":  "Modern Solitaire Diamond Ring",
+                               "shape":  "Round brilliant center stone with channel-set band",
+                               "color":  "Yellow Gold",
+                               "clarity":  "VS-style simulated stones",
+                               "carat":  "Center approx. 1.00–1.50 ct; sides approx. 0.30–0.40 cts total"
+                           },
+                           {
+                               "id":  "Custom Eritrea Map Pendan.png",
+                               "name":  "Custom Eritrea Map Pendant",
+                               "shape":  "Geographic country outline pendant",
+                               "color":  "Yellow Gold",
+                               "clarity":  "High-mirror polish",
+                               "carat":  "Solid metal construction (no stones visible)"
+                           },
+                           {
+                               "id":  "Gold Lion Head Medallion Ring.png",
+                               "name":  "Gold Lion Head Medallion Ring",
+                               "shape":  "Starburst medallion top with lion-head side reliefs",
+                               "color":  "Yellow Gold",
+                               "clarity":  "High-polish metal detailing",
+                               "carat":  "Solid metal ring"
+                           },
+                           {
+                               "id":  "High-Polish Yellow Gold Cuban Link Stack.png",
+                               "name":  "High-Polish Yellow Gold Cuban Link Stack",
+                               "shape":  "Wide oval interlocking curb links (stacked chains)",
+                               "color":  "High-Polish Yellow Gold",
+                               "clarity":  "Mirror-finish",
+                               "carat":  "200g+ combined stack appearance"
+                           },
+                           {
+                               "id":  "Full Iced White Gold Miami Cuban Link Necklace.png",
+                               "name":  "Full Iced White Gold Miami Cuban Necklace",
+                               "shape":  "Round brilliant pavé oval links",
+                               "color":  "White Gold / Platinum tone",
+                               "clarity":  "VVS1-style simulated pavé stones",
+                               "carat":  "Approx. 35.00–45.00 cts total weight"
+                           },
+                           {
+                               "id":  "Iconography Religious Pendant.png",
+                               "name":  "Ornate Byzantine Religious Icon Pendant",
+                               "shape":  "Large arched rectangular medallion with relief figures",
+                               "color":  "Yellow Gold with White Gold figure accents",
+                               "clarity":  "Relief polish and satin contrast",
+                               "carat":  "Heavy gold-style construction"
+                           },
+                           {
+                               "id":  "H-Link Diamond Wedding \u0026 Engagement Set.png",
+                               "name":  "H-Link Diamond Wedding \u0026 Engagement Set",
+                               "shape":  "Round brilliant solitaire with matching H-link band",
+                               "color":  "Yellow Gold",
+                               "clarity":  "VS-style simulated stones",
+                               "carat":  "Solitaire approx. 1.00–1.50 ct; band accents approx. 0.50–1.00 cts"
+                           },
+                           {
+                               "id":  "Slayer of Dragons.png",
+                               "name":  "Archangel Michael Battle Pendant (Dragon Slayer)",
+                               "shape":  "3D sculptural figure in arched window frame",
+                               "color":  "Yellow Gold with Silver-Tone Figure",
+                               "clarity":  "VS2-style simulated accents",
+                               "carat":  "Approx. 0.20 cts total"
+                           },
+                           {
+                               "id":  "p (7).png",
+                               "name":  "Molten Gold Pouring Into Casting Mold",
+                               "shape":  "Liquid molten metal flow into rectangular mold",
+                               "color":  "Bright molten gold",
+                               "clarity":  "High-temperature metallic fluid",
+                               "carat":  "Not applicable (raw molten material)"
+                           },
+                           {
+                               "id":  "portfolio-4.jpg",
+                               "name":  "Gold Pendant Casting and Hand-Finishing Scene",
+                               "shape":  "Hand-shaped molten gold pendant form",
+                               "color":  "Yellow Gold",
+                               "clarity":  "Semi-liquid cast gold surface",
+                               "carat":  "Varies by final casting weight"
+                           },
+                           {
+                               "id":  "portfolio-3.jpg",
+                               "name":  "Luxury Diamond Waterfall Necklace Display",
+                               "shape":  "Layered pear-cut and round-cut gemstone necklace",
+                               "color":  "Yellow Gold with clear high-brilliance stones",
+                               "clarity":  "VVS-style simulated stones",
+                               "carat":  "Large multi-layer set; approx. 25–40 cts total"
+                           },
+                           {
+                               "id":  "portfolio-2.jpg",
+                               "name":  "Stacked Gold Bullion Bars in Vault",
+                               "shape":  "Rectangular stacked gold bars",
+                               "color":  "High-polish gold bullion",
+                               "clarity":  "Solid metal bars",
+                               "carat":  "Measured by weight; approx. multiple-kilogram stack"
+                           }
+                       ]
+}

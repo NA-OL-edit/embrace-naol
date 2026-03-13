@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FadeUp } from '@/components/AnimationWrappers';
 import { listMedia, type MediaImage } from '@/lib/media';
+import jewelryCatalog from '@/data/jewelryCatalog.json';
 
 const SAVED_PROJECTS_KEY = 'savedPortfolioProjects';
 
@@ -16,6 +17,15 @@ type Project = {
   title: string;
   cat: string;
   desc: string;
+};
+
+type CatalogItem = {
+  id: string;
+  name: string;
+  shape: string;
+  color: string;
+  clarity: string;
+  carat: string;
 };
 
 const localImageModules = import.meta.glob('../assets/portfolio/**/*.{png,jpg,jpeg,webp,avif}', {
@@ -53,6 +63,139 @@ function descriptionFromCategory(cat: string) {
   return 'Bespoke custom design crafted for signature statements';
 }
 
+const JEWELRY_CATALOG: CatalogItem[] = jewelryCatalog.jewelryCatalog;
+
+const KEYWORD_PRIORITY = [
+  'eritrea',
+  'cuban',
+  'lion',
+  'jesus',
+  'archangel',
+  'byzantine',
+  'franco',
+  'bracelet',
+  'necklace',
+  'pendant',
+];
+
+function normalizeForMatch(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function normalizeId(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function stripExtension(value: string) {
+  return value.replace(/\.[^.]+$/, '');
+}
+
+function getFileNameFromSrc(src: string | undefined) {
+  if (!src) return '';
+  const clean = src.split('?')[0].split('#')[0];
+  try {
+    const url = new URL(clean, window.location.origin);
+    const base = url.pathname.split('/').pop() || '';
+    return decodeURIComponent(base);
+  } catch {
+    const base = clean.split('/').pop() || '';
+    return decodeURIComponent(base);
+  }
+}
+
+function scoreNameMatch(title: string, name: string) {
+  const titleNorm = normalizeForMatch(title);
+  const nameNorm = normalizeForMatch(name);
+  if (!titleNorm || !nameNorm) return -1;
+  if (titleNorm === nameNorm) return 10000;
+
+  let score = 0;
+  if (nameNorm.includes(titleNorm) || titleNorm.includes(nameNorm)) score += 500;
+
+  const titleTokens = new Set(titleNorm.split(' ').filter(Boolean));
+  const nameTokens = new Set(nameNorm.split(' ').filter(Boolean));
+  let overlap = 0;
+  titleTokens.forEach((token) => {
+    if (nameTokens.has(token)) overlap += 1;
+  });
+  score += overlap * 25;
+
+  let keywordHits = 0;
+  KEYWORD_PRIORITY.forEach((keyword) => {
+    const inTitle = titleNorm.includes(keyword);
+    const inName = nameNorm.includes(keyword);
+    if (inTitle && inName) keywordHits += 1;
+  });
+  score += keywordHits * 200;
+
+  score -= Math.abs(titleNorm.length - nameNorm.length);
+  return score;
+}
+
+function findSpecByName(title: string, fileNameBase: string) {
+  if (!title && !fileNameBase) return null;
+  let best: CatalogItem | null = null;
+  let bestScore = -Infinity;
+  let tie = false;
+
+  JEWELRY_CATALOG.forEach((item) => {
+    const scoreFromTitle = title ? scoreNameMatch(title, item.name) : -1;
+    const scoreFromFile = fileNameBase ? scoreNameMatch(fileNameBase, item.name) : -1;
+    const score = Math.max(scoreFromTitle, scoreFromFile);
+    if (score > bestScore) {
+      bestScore = score;
+      best = item;
+      tie = false;
+    } else if (score === bestScore) {
+      tie = true;
+    }
+  });
+
+  if (bestScore <= 0 || tie) return null;
+  return best;
+}
+
+function findCatalogItem(project: Project | null) {
+  if (!project) return null;
+  const src = project.imgLarge || project.imgMedium || project.img;
+  const fileName = getFileNameFromSrc(src);
+  if (fileName) {
+    const normalizedFileName = normalizeId(fileName);
+    const direct = JEWELRY_CATALOG.find((item) => normalizeId(item.id) === normalizedFileName);
+    if (direct) return direct;
+    const baseMatch = JEWELRY_CATALOG.find(
+      (item) => stripExtension(normalizeId(item.id)) === stripExtension(normalizedFileName)
+    );
+    if (baseMatch) return baseMatch;
+  }
+  const baseName = fileName ? stripExtension(fileName) : '';
+  return findSpecByName(project.title, baseName);
+}
+
+function hasCatalogMatch(project: Project) {
+  const fileName = getFileNameFromSrc(project.imgLarge || project.imgMedium || project.img);
+  if (!fileName) return false;
+  const normalizedFileName = normalizeId(fileName);
+  return JEWELRY_CATALOG.some(
+    (item) => normalizeId(item.id) === normalizedFileName || stripExtension(normalizeId(item.id)) === stripExtension(normalizedFileName)
+  );
+}
+
+const PORTFOLIO_EXCLUDE = new Set(['p (7).png', 'portfolio-4.jpg', 'f (4).jpg']);
+
+function isModalAllowed(project: Project | null) {
+  return !!project;
+}
+
+function isPortfolioExcluded(project: Project) {
+  const fileName = getFileNameFromSrc(project.imgLarge || project.imgMedium || project.img);
+  return fileName ? PORTFOLIO_EXCLUDE.has(fileName) : false;
+}
+
 const fallbackProjects: Project[] = Object.entries(localImageModules)
   .map(([modulePath, img], index) => {
     const relativePath = modulePath.replace('../assets/portfolio/', '');
@@ -69,6 +212,7 @@ const fallbackProjects: Project[] = Object.entries(localImageModules)
     };
   })
   .filter((item) => {
+    if (isPortfolioExcluded(item)) return false;
     const t = item.title.toLowerCase();
     return t !== 'hero bg' && t !== 'about bg' && t !== 'logo';
   });
@@ -105,10 +249,21 @@ export default function Portfolio() {
   const [activePopup, setActivePopup] = useState<'reserve' | null>(null);
   const [reserveStep, setReserveStep] = useState<'confirm' | 'form' | 'thankyou'>('confirm');
   const [inquiryForm, setInquiryForm] = useState({ name: '', email: '', message: '' });
+  const specTableRef = useRef<HTMLDivElement | null>(null);
+  const [specScrollNeeded, setSpecScrollNeeded] = useState(false);
   const navigate = useNavigate();
 
   const categories = ['All', ...Array.from(new Set(projects.map((p) => p.cat)))];
   const filtered = active === 'All' ? projects : projects.filter((p) => p.cat === active);
+  const catalogItem = findCatalogItem(selected);
+  const displayTitle = catalogItem?.name || selected?.title || 'N/A';
+  const displaySpec = catalogItem ?? {
+    name: displayTitle,
+    shape: 'N/A',
+    color: 'N/A',
+    clarity: 'N/A',
+    carat: 'N/A',
+  };
 
   useEffect(() => {
     const raw = localStorage.getItem(SAVED_PROJECTS_KEY);
@@ -129,7 +284,13 @@ export default function Portfolio() {
         if (cancelled) return;
 
         if (response.items.length > 0) {
-          setProjects(response.items.map(mapMediaImageToProject));
+          const mediaProjects = response.items.map(mapMediaImageToProject).filter((item) => !isPortfolioExcluded(item));
+          const matchedCount = mediaProjects.filter(hasCatalogMatch).length;
+          if (matchedCount > 0 && matchedCount === mediaProjects.length) {
+            setProjects(mediaProjects);
+          } else {
+            setProjects(fallbackProjects);
+          }
         } else {
           setProjects(fallbackProjects);
         }
@@ -165,6 +326,14 @@ export default function Portfolio() {
     window.addEventListener('keydown', onEsc);
     return () => window.removeEventListener('keydown', onEsc);
   }, [selected]);
+
+  useLayoutEffect(() => {
+    if (!specTableRef.current) return;
+    const contentHeight = specTableRef.current.scrollHeight;
+    setSpecScrollNeeded(contentHeight > 220);
+  }, [catalogItem, selected?.title]);
+
+  const specValue = (value: string) => (value && value.trim() ? value : 'N/A');
 
   const toggleSaved = (title: string) => {
     setSavedProjects((prev) => {
@@ -239,57 +408,69 @@ export default function Portfolio() {
       {/* Gallery - Depth Cards */}
       <section className="section-padding">
         <div className="mx-auto max-w-7xl">
-          <motion.div layout className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <motion.div layout className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             <AnimatePresence mode="popLayout">
-              {filtered.map((project, i) => (
-                <motion.div
-                  key={project.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9, rotateY: -5 }}
-                  animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.5, delay: i * 0.08 }}
-                  onClick={() => setSelected(project)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setSelected(project);
-                    }
-                  }}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`Open details for ${project.title}`}
-                  className="group relative cursor-pointer perspective-[1000px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                >
+              {filtered.map((project, i) => {
+                const catalogItem = findCatalogItem(project);
+                const cardTitle = catalogItem?.name ?? project.title;
+                const cardAlt = catalogItem?.name ?? (project.alt || project.title);
+
+                return (
                   <motion.div
-                    whileHover={{ rotateY: 3, rotateX: -2, scale: 1.02 }}
-                    transition={{ duration: 0.4 }}
-                    className="relative overflow-hidden border border-border bg-card shadow-elevation"
-                    style={{ transformStyle: 'preserve-3d' }}
+                    key={project.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9, rotateY: -5 }}
+                    animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.5, delay: i * 0.08 }}
+                    onClick={() => {
+                      if (isModalAllowed(project)) {
+                        setSelected(project);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        if (isModalAllowed(project)) {
+                          setSelected(project);
+                        }
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Open details for ${cardTitle}`}
+                    className="group relative cursor-pointer perspective-[1000px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
-                    <div className="aspect-[4/5] overflow-hidden">
+                    <motion.div
+                      whileHover={{ rotateY: 3, rotateX: -2, scale: 1.02 }}
+                      transition={{ duration: 0.4 }}
+                      className="relative overflow-hidden border border-border bg-card shadow-elevation"
+                      style={{ transformStyle: 'preserve-3d' }}
+                    >
+                      <div className="aspect-[4/3] overflow-hidden">
                       <img
                         src={project.imgMedium || project.img}
                         srcSet={buildSrcSet(project)}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        alt={project.alt || project.title}
+                        alt={cardAlt}
                         loading="lazy"
                         decoding="async"
                         className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
                     </div>
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <span className="font-body text-xs font-light uppercase tracking-[0.3em] text-primary">
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <span className="font-body text-[0.65rem] font-light uppercase tracking-[0.3em] text-primary">
                         {project.cat}
                       </span>
-                      <h3 className="mt-1 font-display text-xl font-medium text-foreground">{project.title}</h3>
-                      <p className="mt-1 font-body text-sm font-light text-muted-foreground">{project.desc}</p>
+                      <h3 className="mt-1 line-clamp-2 font-display text-lg font-medium text-foreground">{cardTitle}</h3>
+                      <p className="mt-1 line-clamp-1 font-body text-xs font-light text-muted-foreground">{project.desc}</p>
                     </div>
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-foreground/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-foreground/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                    </motion.div>
                   </motion.div>
-                </motion.div>
-              ))}
+                );
+              })}
             </AnimatePresence>
           </motion.div>
         </div>
@@ -297,7 +478,7 @@ export default function Portfolio() {
 
       {/* Portfolio Popup Modal */}
       <AnimatePresence>
-        {selected && (
+        {selected && isModalAllowed(selected) && (
           <motion.div
             className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8"
             initial={{ opacity: 0 }}
@@ -366,25 +547,29 @@ export default function Portfolio() {
                 <div className="flex flex-col p-6 md:p-10">
                   <p className="font-body text-xs uppercase tracking-[0.32em] text-primary">Portfolio Piece</p>
                   <h2 className="mt-3 font-display text-3xl font-semibold leading-tight text-foreground md:text-4xl">
-                    {selected.title}
+                    {displayTitle}
                   </h2>
 
-                  <div className="mt-8 border border-primary/30">
-                    {[
-                      ['Shape', 'Round Brilliant'],
-                      ['Cut', 'Excellent'],
-                      ['Color', 'D'],
-                      ['Clarity', 'VVS1'],
-                      ['Carat', '2.10 ct'],
-                    ].map(([label, value]) => (
-                      <div
-                        key={label}
-                        className="grid grid-cols-2 border-b border-primary/25 px-5 py-4 last:border-b-0"
-                      >
-                        <span className="font-body text-xs uppercase tracking-[0.2em] text-primary">{label}</span>
-                        <span className="text-right font-body text-sm text-white">{value}</span>
-                      </div>
-                    ))}
+                  <div
+                    className="mt-8"
+                    style={specScrollNeeded ? { maxHeight: 220, overflowY: 'auto' } : { overflow: 'visible' }}
+                  >
+                    <div ref={specTableRef} className="portfolio-spec-table border border-primary/30">
+                      {[
+                        ['Shape', specValue(displaySpec.shape)],
+                        ['Color', specValue(displaySpec.color)],
+                        ['Clarity', specValue(displaySpec.clarity)],
+                        ['Carat', specValue(displaySpec.carat)],
+                      ].map(([label, value]) => (
+                        <div
+                          key={label}
+                          className="grid grid-cols-2 border-b border-primary/25 px-5 py-4 last:border-b-0"
+                        >
+                          <span className="portfolio-spec-label font-body text-xs uppercase tracking-[0.2em] text-primary">{label}</span>
+                          <span className="portfolio-spec-value text-right font-body text-sm text-white">{value}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="mt-auto flex flex-col gap-3 pt-8 sm:flex-row">

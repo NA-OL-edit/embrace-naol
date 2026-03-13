@@ -1,5 +1,5 @@
 /* Luxury typography: high-contrast serif headings and refined serif body text */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Petit+Formal+Script&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Petit+Formal+Script&family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -160,6 +160,15 @@
 }
 
 @layer components {
+  .portfolio-spec-table .portfolio-spec-label {
+    font-family: 'Playfair Display', serif;
+    letter-spacing: 0.12em;
+  }
+
+  .portfolio-spec-table .portfolio-spec-value {
+    font-family: 'Inter', sans-serif;
+  }
+
   .text-gold-gradient {
     background: var(--gradient-gold);
     background-size: 220% 220%;

@@ -4,7 +4,7 @@ import { ArrowRight, Gem, Flame, Shield, Award } from 'lucide-react';
 import { FadeUp, ScaleIn } from '@/components/AnimationWrappers';
 import HeroScene from '@/components/HeroScene';
 import heroBg from '@/assets/portfolio/custom/hero-bg.jpg';
-import portfolio1 from '@/assets/portfolio/casting/portfolio-1.jpg';
+import portfolio1 from '@/assets/portfolio/casting/Solitaire Engagement Ring with Channel Diamonds.jpg';
 import portfolio2 from '@/assets/portfolio/refining/portfolio-2.jpg';
 import portfolio3 from '@/assets/portfolio/refining/portfolio-3.jpg';
 

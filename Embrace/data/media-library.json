@@ -3,9 +3,9 @@
   "updatedAt": "2026-03-02T15:34:20.066Z",
   "images": [
     {
-      "id": "casting-custom",
-      "title": "Custom",
-      "alt": "Custom",
+      "id": "casting-starburst-geometric-signet-ring",
+      "title": "Starburst Geometric Signet Ring",
+      "alt": "Starburst Geometric Signet Ring",
       "description": "",
       "category": "Casting",
       "tags": [],
@@ -14,17 +14,17 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/casting/Custom.png",
-        "medium": "/src/assets/portfolio/casting/Custom.png",
-        "large": "/src/assets/portfolio/casting/Custom.png"
+        "thumb": "/src/assets/portfolio/casting/Starburst Geometric Signet Ring.png",
+        "medium": "/src/assets/portfolio/casting/Starburst Geometric Signet Ring.png",
+        "large": "/src/assets/portfolio/casting/Starburst Geometric Signet Ring.png"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "casting-g1-2",
-      "title": "g1 (2)",
-      "alt": "g1 (2)",
+      "id": "casting-classic-cuban-link-chain",
+      "title": "Classic Cuban Link Chain",
+      "alt": "Classic Cuban Link Chain",
       "description": "",
       "category": "Casting",
       "tags": [],
@@ -33,17 +33,17 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/casting/g1 (2).png",
-        "medium": "/src/assets/portfolio/casting/g1 (2).png",
-        "large": "/src/assets/portfolio/casting/g1 (2).png"
+        "thumb": "/src/assets/portfolio/casting/Classic Cuban Link Chain.png",
+        "medium": "/src/assets/portfolio/casting/Classic Cuban Link Chain.png",
+        "large": "/src/assets/portfolio/casting/Classic Cuban Link Chain.png"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "casting-g1-4",
-      "title": "g1 (4)",
-      "alt": "g1 (4)",
+      "id": "casting-pyramid-step-cut-signet-ring",
+      "title": "Pyramid Step-Cut Signet Ring",
+      "alt": "Pyramid Step-Cut Signet Ring",
       "description": "",
       "category": "Casting",
       "tags": [],
@@ -52,17 +52,17 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/casting/g1 (4).png",
-        "medium": "/src/assets/portfolio/casting/g1 (4).png",
-        "large": "/src/assets/portfolio/casting/g1 (4).png"
+        "thumb": "/src/assets/portfolio/casting/Pyramid Step-Cut Signet Ring.png",
+        "medium": "/src/assets/portfolio/casting/Pyramid Step-Cut Signet Ring.png",
+        "large": "/src/assets/portfolio/casting/Pyramid Step-Cut Signet Ring.png"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "casting-g1-6",
-      "title": "g1 (6)",
-      "alt": "g1 (6)",
+      "id": "casting-box-clasp-cuban-link-chain",
+      "title": "Box-Clasp Cuban Link Chain",
+      "alt": "Box-Clasp Cuban Link Chain",
       "description": "",
       "category": "Casting",
       "tags": [],
@@ -71,17 +71,17 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/casting/g1 (6).png",
-        "medium": "/src/assets/portfolio/casting/g1 (6).png",
-        "large": "/src/assets/portfolio/casting/g1 (6).png"
+        "thumb": "/src/assets/portfolio/casting/Box-Clasp Cuban Link Chain.png",
+        "medium": "/src/assets/portfolio/casting/Box-Clasp Cuban Link Chain.png",
+        "large": "/src/assets/portfolio/casting/Box-Clasp Cuban Link Chain.png"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "casting-g1-7",
-      "title": "g1 (7)",
-      "alt": "g1 (7)",
+      "id": "casting-3d-sculpted-portrait-pendant-with-cuban-link-chain",
+      "title": "3D Sculpted Portrait Pendant with Cuban Link Chain",
+      "alt": "3D Sculpted Portrait Pendant with Cuban Link Chain",
       "description": "",
       "category": "Casting",
       "tags": [],
@@ -90,17 +90,17 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/casting/g1 (7).png",
-        "medium": "/src/assets/portfolio/casting/g1 (7).png",
-        "large": "/src/assets/portfolio/casting/g1 (7).png"
+        "thumb": "/src/assets/portfolio/casting/3D Sculpted Portrait Pendant with Cuban Link Chain.png",
+        "medium": "/src/assets/portfolio/casting/3D Sculpted Portrait Pendant with Cuban Link Chain.png",
+        "large": "/src/assets/portfolio/casting/3D Sculpted Portrait Pendant with Cuban Link Chain.png"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "casting-p-5",
-      "title": "p (5)",
-      "alt": "p (5)",
+      "id": "casting-radiant-cut-gemstone-swirl-pendant",
+      "title": "Radiant-Cut Gemstone Swirl Pendant",
+      "alt": "Radiant-Cut Gemstone Swirl Pendant",
       "description": "",
       "category": "Casting",
       "tags": [],
@@ -109,17 +109,17 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/casting/p (5).png",
-        "medium": "/src/assets/portfolio/casting/p (5).png",
-        "large": "/src/assets/portfolio/casting/p (5).png"
+        "thumb": "/src/assets/portfolio/casting/Radiant-Cut Gemstone Swirl Pendant.png",
+        "medium": "/src/assets/portfolio/casting/Radiant-Cut Gemstone Swirl Pendant.png",
+        "large": "/src/assets/portfolio/casting/Radiant-Cut Gemstone Swirl Pendant.png"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "casting-portfolio-1",
-      "title": "portfolio 1",
-      "alt": "portfolio 1",
+      "id": "casting-solitaire-engagement-ring-with-channel-diamonds",
+      "title": "Solitaire Engagement Ring with Channel Diamonds",
+      "alt": "Solitaire Engagement Ring with Channel Diamonds",
       "description": "",
       "category": "Casting",
       "tags": [],
@@ -128,9 +128,9 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/casting/portfolio-1.jpg",
-        "medium": "/src/assets/portfolio/casting/portfolio-1.jpg",
-        "large": "/src/assets/portfolio/casting/portfolio-1.jpg"
+        "thumb": "/src/assets/portfolio/casting/Solitaire Engagement Ring with Channel Diamonds.jpg",
+        "medium": "/src/assets/portfolio/casting/Solitaire Engagement Ring with Channel Diamonds.jpg",
+        "large": "/src/assets/portfolio/casting/Solitaire Engagement Ring with Channel Diamonds.jpg"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
@@ -174,9 +174,9 @@
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "custom-f-1",
-      "title": "f (1)",
-      "alt": "f (1)",
+      "id": "custom-pav-band-ring-collection",
+      "title": "PavÃ© Band Ring Collection",
+      "alt": "PavÃ© Band Ring Collection",
       "description": "",
       "category": "Custom",
       "tags": [],
@@ -185,17 +185,17 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/custom/f (1).jpg",
-        "medium": "/src/assets/portfolio/custom/f (1).jpg",
-        "large": "/src/assets/portfolio/custom/f (1).jpg"
+        "thumb": "/src/assets/portfolio/custom/PavÃ© Band Ring Collection.jpg",
+        "medium": "/src/assets/portfolio/custom/PavÃ© Band Ring Collection.jpg",
+        "large": "/src/assets/portfolio/custom/PavÃ© Band Ring Collection.jpg"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "custom-f-3",
-      "title": "f (3)",
-      "alt": "f (3)",
+      "id": "custom-round-filigree-floral-pendant",
+      "title": "Round Filigree Floral Pendant",
+      "alt": "Round Filigree Floral Pendant",
       "description": "",
       "category": "Custom",
       "tags": [],
@@ -204,17 +204,17 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/custom/f (3).jpg",
-        "medium": "/src/assets/portfolio/custom/f (3).jpg",
-        "large": "/src/assets/portfolio/custom/f (3).jpg"
+        "thumb": "/src/assets/portfolio/custom/Round Filigree Floral Pendant.jpg",
+        "medium": "/src/assets/portfolio/custom/Round Filigree Floral Pendant.jpg",
+        "large": "/src/assets/portfolio/custom/Round Filigree Floral Pendant.jpg"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "custom-g1-5",
-      "title": "g1 (5)",
-      "alt": "g1 (5)",
+      "id": "custom-premium-cuban-link-set",
+      "title": "Premium Cuban Link Set",
+      "alt": "Premium Cuban Link Set",
       "description": "",
       "category": "Custom",
       "tags": [],
@@ -223,17 +223,17 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/custom/g1 (5).png",
-        "medium": "/src/assets/portfolio/custom/g1 (5).png",
-        "large": "/src/assets/portfolio/custom/g1 (5).png"
+        "thumb": "/src/assets/portfolio/custom/Premium Cuban Link Set.png",
+        "medium": "/src/assets/portfolio/custom/Premium Cuban Link Set.png",
+        "large": "/src/assets/portfolio/custom/Premium Cuban Link Set.png"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "custom-g1-8",
-      "title": "g1 (8)",
-      "alt": "g1 (8)",
+      "id": "custom-solitaire-engagement-ring-with-channel-stones",
+      "title": "Solitaire Engagement Ring with Channel Stones",
+      "alt": "Solitaire Engagement Ring with Channel Stones",
       "description": "",
       "category": "Custom",
       "tags": [],
@@ -242,9 +242,9 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/custom/g1 (8).png",
-        "medium": "/src/assets/portfolio/custom/g1 (8).png",
-        "large": "/src/assets/portfolio/custom/g1 (8).png"
+        "thumb": "/src/assets/portfolio/custom/Solitaire Engagement Ring with Channel Stones.png",
+        "medium": "/src/assets/portfolio/custom/Solitaire Engagement Ring with Channel Stones.png",
+        "large": "/src/assets/portfolio/custom/Solitaire Engagement Ring with Channel Stones.png"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
@@ -269,9 +269,9 @@
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "custom-p-3",
-      "title": "p (3)",
-      "alt": "p (3)",
+      "id": "custom-luxury-multi-cut-gemstone-ring-showcase",
+      "title": "Luxury Multi-Cut Gemstone Ring Showcase",
+      "alt": "Luxury Multi-Cut Gemstone Ring Showcase",
       "description": "",
       "category": "Custom",
       "tags": [],
@@ -280,17 +280,17 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/custom/p (3).png",
-        "medium": "/src/assets/portfolio/custom/p (3).png",
-        "large": "/src/assets/portfolio/custom/p (3).png"
+        "thumb": "/src/assets/portfolio/custom/Luxury Multi-Cut Gemstone Ring Showcase.png",
+        "medium": "/src/assets/portfolio/custom/Luxury Multi-Cut Gemstone Ring Showcase.png",
+        "large": "/src/assets/portfolio/custom/Luxury Multi-Cut Gemstone Ring Showcase.png"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "custom-p-6",
-      "title": "p (6)",
-      "alt": "p (6)",
+      "id": "custom-constellation-diamond-style-cuff-bracelet",
+      "title": "Constellation Diamond-Style Cuff Bracelet",
+      "alt": "Constellation Diamond-Style Cuff Bracelet",
       "description": "",
       "category": "Custom",
       "tags": [],
@@ -299,9 +299,9 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/custom/p (6).png",
-        "medium": "/src/assets/portfolio/custom/p (6).png",
-        "large": "/src/assets/portfolio/custom/p (6).png"
+        "thumb": "/src/assets/portfolio/custom/Constellation Diamond-Style Cuff Bracelet.png",
+        "medium": "/src/assets/portfolio/custom/Constellation Diamond-Style Cuff Bracelet.png",
+        "large": "/src/assets/portfolio/custom/Constellation Diamond-Style Cuff Bracelet.png"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
@@ -364,9 +364,9 @@
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "refining-g1-3",
-      "title": "g1 (3)",
-      "alt": "g1 (3)",
+      "id": "refining-heavyweight-cuban-link-bracelet",
+      "title": "Heavyweight Cuban Link Bracelet",
+      "alt": "Heavyweight Cuban Link Bracelet",
       "description": "",
       "category": "Refining",
       "tags": [],
@@ -375,17 +375,17 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/refining/g1 (3).png",
-        "medium": "/src/assets/portfolio/refining/g1 (3).png",
-        "large": "/src/assets/portfolio/refining/g1 (3).png"
+        "thumb": "/src/assets/portfolio/refining/Heavyweight Cuban Link Bracelet.png",
+        "medium": "/src/assets/portfolio/refining/Heavyweight Cuban Link Bracelet.png",
+        "large": "/src/assets/portfolio/refining/Heavyweight Cuban Link Bracelet.png"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "refining-p-1",
-      "title": "p (1)",
-      "alt": "p (1)",
+      "id": "refining-luxury-cut-and-rough-gemstone-display-set",
+      "title": "Luxury Cut and Rough Gemstone Display Set",
+      "alt": "Luxury Cut and Rough Gemstone Display Set",
       "description": "",
       "category": "Refining",
       "tags": [],
@@ -394,17 +394,17 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/refining/p (1).png",
-        "medium": "/src/assets/portfolio/refining/p (1).png",
-        "large": "/src/assets/portfolio/refining/p (1).png"
+        "thumb": "/src/assets/portfolio/refining/Luxury Cut and Rough Gemstone Display Set.png",
+        "medium": "/src/assets/portfolio/refining/Luxury Cut and Rough Gemstone Display Set.png",
+        "large": "/src/assets/portfolio/refining/Luxury Cut and Rough Gemstone Display Set.png"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "refining-p-2",
-      "title": "p (2)",
-      "alt": "p (2)",
+      "id": "refining-luxury-gemstone-necklace-and-ring-showcase-set",
+      "title": "Luxury Gemstone Necklace and Ring Showcase Set",
+      "alt": "Luxury Gemstone Necklace and Ring Showcase Set",
       "description": "",
       "category": "Refining",
       "tags": [],
@@ -413,17 +413,17 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/refining/p (2).png",
-        "medium": "/src/assets/portfolio/refining/p (2).png",
-        "large": "/src/assets/portfolio/refining/p (2).png"
+        "thumb": "/src/assets/portfolio/refining/Luxury Gemstone Necklace and Ring Showcase Set.png",
+        "medium": "/src/assets/portfolio/refining/Luxury Gemstone Necklace and Ring Showcase Set.png",
+        "large": "/src/assets/portfolio/refining/Luxury Gemstone Necklace and Ring Showcase Set.png"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
     },
     {
-      "id": "refining-p-4",
-      "title": "p (4)",
-      "alt": "p (4)",
+      "id": "refining-asscher-cut-luxury-gemstone-ring",
+      "title": "Asscher-Cut Luxury Gemstone Ring",
+      "alt": "Asscher-Cut Luxury Gemstone Ring",
       "description": "",
       "category": "Refining",
       "tags": [],
@@ -432,9 +432,9 @@
       "height": 0,
       "status": "active",
       "variants": {
-        "thumb": "/src/assets/portfolio/refining/p (4).png",
-        "medium": "/src/assets/portfolio/refining/p (4).png",
-        "large": "/src/assets/portfolio/refining/p (4).png"
+        "thumb": "/src/assets/portfolio/refining/Asscher-Cut Luxury Gemstone Ring.png",
+        "medium": "/src/assets/portfolio/refining/Asscher-Cut Luxury Gemstone Ring.png",
+        "large": "/src/assets/portfolio/refining/Asscher-Cut Luxury Gemstone Ring.png"
       },
       "createdAt": "2026-03-02T15:34:20.066Z",
       "updatedAt": "2026-03-02T15:34:20.066Z"
