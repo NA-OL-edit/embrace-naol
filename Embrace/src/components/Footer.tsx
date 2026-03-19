@@ -40,28 +40,28 @@ export default function Footer() {
             <div className="mt-4 flex flex-col gap-2 font-body text-sm font-light text-muted-foreground">
               <p>info@embracerefiningandcasting.com</p>
               <p>+256769947948, +251943814444, +251943794444</p>
-              <p>Address: Addis Ababa, Ethiopia and UAE, Dubai Kampala, Uganda</p>
+              <p>Address: Addis Ababa, Ethiopia and Kampala, Uganda</p>
             </div>
           </div>
           <div>
             <h4 className="font-display text-lg font-medium text-foreground">Follow</h4>
-            <div className="mt-4 flex flex-col gap-3">
+            <div className="mt-4 flex flex-wrap items-center gap-3">
               {socialLinks.map((social) => (
                 <a
                   key={social.label}
                   href={social.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-3 font-body text-sm font-light text-muted-foreground transition-colors hover:text-primary"
+                  aria-label={social.label}
+                  title={social.label}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-xs uppercase tracking-wide text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 >
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border text-xs uppercase tracking-wide">
-                    {social.iconSrc ? (
-                      <img src={social.iconSrc} alt="" className="h-4 w-4" />
-                    ) : (
-                      social.icon
-                    )}
-                  </span>
-                  {social.label}
+                  {social.iconSrc ? (
+                    <img src={social.iconSrc} alt="" className="h-4 w-4" />
+                  ) : (
+                    social.icon
+                  )}
+                  <span className="sr-only">{social.label}</span>
                 </a>
               ))}
             </div>
