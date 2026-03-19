@@ -12,7 +12,7 @@ const stats = [
   { value: '99.99%', label: 'Purity Guaranteed' },
   { value: '20+', label: 'Years of Excellence' },
   { value: '5,000+', label: 'Projects Delivered' },
-  { value: '40+', label: 'Countries Served' },
+  { value: '10+', label: 'Countries Served' },
 ];
 
 const services = [

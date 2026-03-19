@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -265,8 +265,14 @@ export default function Portfolio() {
   const [specScrollNeeded, setSpecScrollNeeded] = useState(false);
   const navigate = useNavigate();
 
-  const categories = ['All', ...Array.from(new Set(projects.map((p) => p.cat)))];
-  const filtered = active === 'All' ? projects : projects.filter((p) => p.cat === active);
+  const categories = useMemo(
+    () => ['All', ...Array.from(new Set(projects.map((p) => p.cat)))],
+    [projects],
+  );
+  const filtered = useMemo(
+    () => (active === 'All' ? projects : projects.filter((p) => p.cat === active)),
+    [active, projects],
+  );
   const catalogItem = findCatalogItem(selected);
   const displayTitle = catalogItem?.name || selected?.title || 'N/A';
   const displaySpec = catalogItem ?? {
