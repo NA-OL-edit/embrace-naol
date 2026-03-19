@@ -4,13 +4,13 @@ import { ArrowRight, Gem, Flame, Shield, Award } from 'lucide-react';
 import { FadeUp, ScaleIn } from '@/components/AnimationWrappers';
 import HeroScene from '@/components/HeroScene';
 import heroBg from '@/assets/portfolio/custom/hero-bg.jpg';
-import portfolio1 from '@/assets/portfolio/casting/Solitaire Engagement Ring with Channel Diamonds.jpg';
-import portfolio2 from '@/assets/portfolio/refining/portfolio-2.jpg';
-import portfolio3 from '@/assets/portfolio/refining/portfolio-3.jpg';
+import portfolio1 from '@/assets/portfolio/raw/Custom Eritrea Map Pendant with Diamond Accents.jpg';
+import portfolio2 from '@/assets/portfolio/raw/H-Link Diamond Wedding & Engagement Set.png';
+import portfolio3 from '@/assets/portfolio/raw/High-Polish Yellow Gold Cuban Link Stack.png';
 
 const stats = [
   { value: '99.99%', label: 'Purity Guaranteed' },
-  { value: '25+', label: 'Years of Excellence' },
+  { value: '20+', label: 'Years of Excellence' },
   { value: '5,000+', label: 'Projects Delivered' },
   { value: '40+', label: 'Countries Served' },
 ];
@@ -148,9 +148,9 @@ export default function Index() {
 
           <div className="mt-16 grid gap-4 md:grid-cols-3">
             {[
-              { img: portfolio1, title: 'Royal Signet Ring', cat: 'Jewelry Casting' },
-              { img: portfolio2, title: 'Investment Gold Bars', cat: 'Gold Refining' },
-              { img: portfolio3, title: 'Diamond Necklace', cat: 'Custom Design' },
+              { img: portfolio1, title: 'Custom Eritrea Map Pendant with Diamond Accents', cat: 'Jewelry Casting' },
+              { img: portfolio2, title: 'H-Link Diamond Wedding & Engagement Set', cat: 'Gold Refining' },
+              { img: portfolio3, title: 'High-Polish Yellow Gold Cuban Link Stack', cat: 'Custom Design' },
             ].map((item, i) => (
               <ScaleIn key={item.title} delay={i * 0.15}>
                 <Link to="/portfolio" className="group relative block aspect-square overflow-hidden">

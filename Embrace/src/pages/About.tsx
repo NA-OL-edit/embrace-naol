@@ -2,11 +2,11 @@ import { FadeUp, SlideIn } from '@/components/AnimationWrappers';
 import aboutBg from '@/assets/portfolio/custom/about-bg.jpg';
 
 const milestones = [
-  { year: '1998', title: 'Founded', desc: 'Established as a boutique gold refinery in California.' },
-  { year: '2005', title: 'Jewelry Division', desc: 'Expanded into precision jewelry casting services.' },
-  { year: '2012', title: 'Global Reach', desc: 'Began serving clients across 30+ countries worldwide.' },
+  { year: '2005', title: 'Founded', desc: 'Established as a boutique gold refinery in California.' },
+  { year: '2010', title: 'Jewelry Division', desc: 'Expanded into precision jewelry casting services.' },
+  { year: '2017', title: 'Global Reach', desc: 'Began serving clients across 10+ countries worldwide.' },
   { year: '2020', title: 'Innovation Lab', desc: 'Launched advanced 3D printing and CAD design capabilities.' },
-  { year: '2025', title: 'Industry Leader', desc: 'Recognized as a top-tier refinery with 99.99% purity standards.' },
+  { year: '2026', title: 'Industry Leader', desc: 'Recognized as a top-tier refinery with 99.99% purity standards.' },
 ];
 
 export default function About() {
@@ -33,7 +33,7 @@ export default function About() {
         <div className="mx-auto grid max-w-7xl gap-16 md:grid-cols-2">
           <FadeUp>
             <div>
-              <h2 className="luxury-subheading text-foreground">Crafting Excellence Since 1998</h2>
+              <h2 className="luxury-subheading text-foreground">Crafting Excellence Since 2005</h2>
               <p className="luxury-body mt-6 text-muted-foreground">
                 Embrace Jewelery was born from a singular vision: to elevate the art of fine jewelry
                 and bespoke craftsmanship to timeless standards. Our founders, master artisans
