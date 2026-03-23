@@ -169,6 +169,24 @@
     font-family: 'Inter', sans-serif;
   }
 
+  .luxury-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #c5a059 transparent;
+  }
+
+  .luxury-scrollbar::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .luxury-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .luxury-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #c5a059;
+    border-radius: 999px;
+  }
+
   .text-gold-gradient {
     background: var(--gradient-gold);
     background-size: 220% 220%;

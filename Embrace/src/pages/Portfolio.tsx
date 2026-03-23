@@ -1,6 +1,6 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart } from 'lucide-react';
+import { ChevronDown, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FadeUp } from '@/components/AnimationWrappers';
 import { listMedia, type MediaImage } from '@/lib/media';
@@ -26,12 +26,95 @@ type CatalogItem = {
   color: string;
   clarity: string;
   carat: string;
+  productId?: string;
+  description?: string;
+  mainDiamondShape?: string;
+  mainDiamondWeight?: string;
+  mainDiamondClarity?: string;
+  mainDiamondColor?: string;
+  cut?: string;
+  symmetry?: string;
+  polish?: string;
+  secondaryDiamondWeight?: string;
+  secondaryDiamondClarity?: string;
+  secondaryDiamondColor?: string;
+  metalType?: string;
+  metalPurity?: string;
+  metalColor?: string;
+  metalWeight?: string;
+  replacementValue?: string;
+  certification?: string;
+};
+
+type SpecRow = {
+  label: string;
+  value: string;
 };
 
 const localImageModules = import.meta.glob('../assets/portfolio/**/*.{png,jpg,jpeg,webp,avif}', {
   eager: true,
   import: 'default',
 }) as Record<string, string>;
+
+function SpecAccordionSection({
+  title,
+  rows,
+  isOpen,
+  onToggle,
+}: {
+  title: string;
+  rows: SpecRow[];
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="border border-primary/30">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+        aria-expanded={isOpen}
+      >
+        <span className="font-body text-xs uppercase tracking-[0.32em] text-primary">{title}</span>
+        <ChevronDown
+          size={18}
+          className={`text-primary transition-transform duration-300 ease-in-out ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="overflow-hidden transition-all duration-300 ease-in-out"
+          >
+            <div className="max-h-[300px] overflow-y-auto pr-2 luxury-scrollbar">
+              <div className="portfolio-spec-table border-t border-primary/25">
+                {rows.map((row) => (
+                  <div
+                    key={row.label}
+                    className="grid grid-cols-2 border-b border-primary/25 px-5 py-4 last:border-b-0"
+                  >
+                    <span className="portfolio-spec-label font-body text-xs uppercase tracking-[0.2em] text-primary">
+                      {row.label}
+                    </span>
+                    <span className="portfolio-spec-value text-right font-body text-sm text-white">
+                      {row.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 function toTitle(value: string) {
   return value
@@ -85,6 +168,7 @@ function normalizeForMatch(value: string) {
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 }
+
 
 function normalizeId(value: string) {
   return value.trim().toLowerCase();
@@ -183,6 +267,7 @@ function findCatalogItem(project: Project | null) {
   return findSpecByName(project.title, baseName);
 }
 
+
 function hasCatalogMatch(project: Project) {
   const fileName = getFileNameFromSrc(project.imgLarge || project.imgMedium || project.img);
   if (!fileName) return false;
@@ -261,8 +346,7 @@ export default function Portfolio() {
   const [activePopup, setActivePopup] = useState<'reserve' | null>(null);
   const [reserveStep, setReserveStep] = useState<'confirm' | 'form' | 'thankyou'>('confirm');
   const [inquiryForm, setInquiryForm] = useState({ name: '', email: '', message: '' });
-  const specTableRef = useRef<HTMLDivElement | null>(null);
-  const [specScrollNeeded, setSpecScrollNeeded] = useState(false);
+  const [openSections, setOpenSections] = useState({ diamond: true, metal: false });
   const navigate = useNavigate();
 
   const categories = useMemo(
@@ -345,13 +429,35 @@ export default function Portfolio() {
     return () => window.removeEventListener('keydown', onEsc);
   }, [selected]);
 
-  useLayoutEffect(() => {
-    if (!specTableRef.current) return;
-    const contentHeight = specTableRef.current.scrollHeight;
-    setSpecScrollNeeded(contentHeight > 220);
-  }, [catalogItem, selected?.title]);
+  const specValue = (value?: string | number | null) => {
+    if (value === null || value === undefined) return 'N/A';
+    const text = String(value).trim();
+    return text ? text : 'N/A';
+  };
 
-  const specValue = (value: string) => (value && value.trim() ? value : 'N/A');
+  const diamondDetailsRows: SpecRow[] = [
+    { label: 'Product ID', value: specValue(catalogItem?.productId || catalogItem?.id || selected?.id || '') },
+    { label: 'Description', value: specValue(catalogItem?.description || selected?.desc || '') },
+    { label: 'Main Diamond Shape', value: specValue(catalogItem?.mainDiamondShape || displaySpec.shape) },
+    { label: 'Main Diamond Weight', value: specValue(catalogItem?.mainDiamondWeight) },
+    { label: 'Main Diamond Clarity', value: specValue(catalogItem?.mainDiamondClarity || displaySpec.clarity) },
+    { label: 'Main Diamond Color', value: specValue(catalogItem?.mainDiamondColor || displaySpec.color) },
+    { label: 'Cut', value: specValue(catalogItem?.cut) },
+    { label: 'Symmetry', value: specValue(catalogItem?.symmetry) },
+    { label: 'Polish', value: specValue(catalogItem?.polish) },
+    { label: 'Secondary Diamond Weight', value: specValue(catalogItem?.secondaryDiamondWeight) },
+    { label: 'Secondary Diamond Clarity', value: specValue(catalogItem?.secondaryDiamondClarity) },
+    { label: 'Secondary Diamond Color', value: specValue(catalogItem?.secondaryDiamondColor) },
+  ];
+
+  const metalCertificationRows: SpecRow[] = [
+    { label: 'Metal Type', value: specValue(catalogItem?.metalType) },
+    { label: 'Metal Purity', value: specValue(catalogItem?.metalPurity) },
+    { label: 'Metal Color', value: specValue(catalogItem?.metalColor) },
+    { label: 'Metal Weight (g)', value: specValue(catalogItem?.metalWeight || displaySpec.carat) },
+    { label: 'Replacement Value', value: specValue(catalogItem?.replacementValue) },
+    { label: 'Certification', value: specValue(catalogItem?.certification) },
+  ];
 
   const toggleSaved = (title: string) => {
     setSavedProjects((prev) => {
@@ -568,29 +674,24 @@ export default function Portfolio() {
                     {displayTitle}
                   </h2>
 
-                  <div
-                    className="mt-8"
-                    style={specScrollNeeded ? { maxHeight: 220, overflowY: 'auto' } : { overflow: 'visible' }}
-                  >
-                    <div ref={specTableRef} className="portfolio-spec-table border border-primary/30">
-                      {[
-                        ['Shape', specValue(displaySpec.shape)],
-                        ['Color', specValue(displaySpec.color)],
-                        ['Clarity', specValue(displaySpec.clarity)],
-                        ['Carat', specValue(displaySpec.carat)],
-                      ].map(([label, value]) => (
-                        <div
-                          key={label}
-                          className="grid grid-cols-2 border-b border-primary/25 px-5 py-4 last:border-b-0"
-                        >
-                          <span className="portfolio-spec-label font-body text-xs uppercase tracking-[0.2em] text-primary">{label}</span>
-                          <span className="portfolio-spec-value text-right font-body text-sm text-white">{value}</span>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="mt-8 space-y-4">
+                    <SpecAccordionSection
+                      title="Diamond Details"
+                      rows={diamondDetailsRows}
+                      isOpen={openSections.diamond}
+                      onToggle={() =>
+                        setOpenSections((prev) => ({ ...prev, diamond: !prev.diamond }))
+                      }
+                    />
+                    <SpecAccordionSection
+                      title="Metal & Certification"
+                      rows={metalCertificationRows}
+                      isOpen={openSections.metal}
+                      onToggle={() => setOpenSections((prev) => ({ ...prev, metal: !prev.metal }))}
+                    />
                   </div>
 
-                  <div className="mt-auto flex flex-col gap-3 pt-8 sm:flex-row">
+                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                     <button
                       type="button"
                       onClick={handleReserveClick}
