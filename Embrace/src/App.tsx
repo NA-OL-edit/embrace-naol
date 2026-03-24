@@ -18,6 +18,13 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
+const AdminRedirect = () => {
+  if (typeof window !== "undefined") {
+    window.location.href = "/admin/index.html";
+  }
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -37,7 +44,7 @@ const App = () => (
               <Route path="/services" element={<Services />} />
               <Route path="/portfolio" element={<Portfolio />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/admin" element={<Admin />} />
+              <Route path="/admin" element={<AdminRedirect />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

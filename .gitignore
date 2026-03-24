@@ -1,0 +1,30 @@
+# PocketBase binary & runtime data (do not commit)
+pocketbase/pocketbase.exe
+pocketbase/pocketbase.err.log
+pocketbase/pocketbase.out.log
+pocketbase/pb_data/
+
+# Debug & seeder scripts (dev-only)
+Embrace/debug_stats.mjs
+Embrace/list_col.mjs
+Embrace/rebuild_pb.mjs
+Embrace/rebuild_pb3.mjs
+Embrace/rebuild_pb3.mjs
+Embrace/rebuild_final.mjs
+Embrace/setup_pb.mjs
+Embrace/setup_pb2.mjs
+Embrace/shot.mjs
+Embrace/test_create.mjs
+Embrace/verify_pb.mjs
+
+# Proof screenshots
+*.png
+!Embrace/src/assets/**/*.png
+!Embrace/public/**/*.png
+
+# Node
+Embrace/node_modules/
+node_modules/
+
+# Build
+Embrace/dist/

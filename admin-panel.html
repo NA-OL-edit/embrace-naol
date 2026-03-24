@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+<style>
+  :root { --bg: #0f1115; --panel: #1a1d24; --text: #f0f0f0; --text-muted: #8b949e; --primary: #3b82f6; --danger: #ef4444; --success: #10b981; --border: #30363d; --hover: #21262d; }
+  * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+  body { margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; }
+  a { color: var(--primary); text-decoration: none; }
+  button { background: var(--border); color: var(--text); border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+  button:hover { background: var(--hover); }
+  button.primary { background: var(--primary); color: white; }
+  button.danger { background: var(--danger); color: white; }
+  input, select, textarea { width: 100%; padding: 8px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+  th, td { border: 1px solid var(--border); padding: 8px; text-align: left; }
+  th { background: var(--panel); }
+  .hidden { display: none !important; }
+  
+  /* Layout */
+  #login-view { display: flex; align-items: center; justify-content: center; height: 100vh; }
+  .login-box { background: var(--panel); padding: 30px; border-radius: 8px; border: 1px solid var(--border); width: 300px; }
+  
+  #app-view { display: flex; height: 100vh; }
+  #sidebar { width: 250px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+  .nav-link { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid var(--border); }
+  .nav-link:hover, .nav-link.active { background: var(--hover); border-left: 3px solid var(--primary); }
+  #main-content { flex: 1; padding: 20px; overflow-y: auto; }
+  
+  /* Utilities */
+  .header-actions { display: flex; justify-content: space-between; margin-bottom: 20px; }
+  .grid { display: grid; gap: 15px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .card { background: var(--panel); border: 1px solid var(--border); padding: 20px; border-radius: 8px; }
+  
+  /* Modal */
+  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .modal { background: var(--panel); padding: 20px; border-radius: 8px; border: 1px solid var(--border); width: 600px; max-height: 90vh; overflow-y: auto; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+  
+  /* Toast */
+  #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+  .toast { padding: 12px 20px; border-radius: 4px; color: white; opacity: 0; animation: fadeInOut 3s forwards; }
+  @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(10px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(10px); } }
+  
+  /* Skeleton */
+  .skeleton { background: var(--border); border-radius: 4px; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 0.3; } 100% { opacity: 0.6; } }
+  
+  /* Media Grid */
+  .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+  .media-card { background: var(--panel); border: 1px solid var(--border); padding: 10px; text-align: center; }
+  .media-card img { max-width: 100%; height: 100px; object-fit: contain; cursor: pointer; }
+
+  /* Table wrapper for horizontal scroll */
+  .table-wrapper { overflow-x: auto; width: 100%; }
+
+  .status-dot { height: 10px; width: 10px; background-color: var(--danger); border-radius: 50%; display: inline-block; margin-right: 5px; }
+  .status-dot.online { background-color: var(--success); }
+</style>
+</head>
+<body>
+
+<!-- Setup Container -->
+<div id="toast-container"></div>
+<div id="modal-container"></div>
+
+<!-- Login View -->
+<div id="login-view">
+  <div class="login-box">
+    <h2>Admin Login</h2>
+    <div id="login-error" class="hidden" style="color: var(--danger); margin-bottom: 10px;"></div>
+    <form id="login-form">
+      <label>Email</label>
+      <input type="email" id="email" required>
+      <label>Password</label>
+      <input type="password" id="password" required>
+      <button type="submit" class="primary" style="width:100%; margin-top:10px;">Login</button>
+    </form>
+  </div>
+</div>
+
+<!-- App View -->
+<div id="app-view" class="hidden">
+  <div id="sidebar">
+    <div style="padding: 20px; font-weight: bold; border-bottom: 1px solid var(--border); display: flex; align-items: center;">
+      <span id="conn-status" class="status-dot"></span> Admin Panel
+    </div>
+    <div class="nav-link" data-page="dashboard">Dashboard</div>
+    <div class="nav-link" data-page="products">Products</div>
+    <div class="nav-link" data-page="categories">Categories</div>
+    <div class="nav-link" data-page="media">Media Library</div>
+    <div class="nav-link" data-page="users">Users</div>
+    <div class="nav-link" data-page="logs">Audit Log</div>
+    <div class="nav-link" data-page="settings">Settings</div>
+    <div class="nav-link" data-page="profile">My Profile</div>
+    <div style="flex:1"></div>
+    <div class="nav-link" id="btn-logout" style="color: var(--danger);">Logout</div>
+  </div>
+  
+  <div id="main-content">
+    <h1 id="page-title">Loading...</h1>
+    <div id="page-container"></div>
+  </div>
+</div>
+
+<script>
+const PB_URL = 'http://127.0.0.1:8090';
+let token = localStorage.getItem('pb_token');
+let adminId = localStorage.getItem('pb_admin_id');
+let currentCollection = '';
+let currentPage = 'dashboard';
+let evtSource = null;
+
+// Utility functions
+const $ = id => document.getElementById(id);
+const toast = (msg, type='success') => {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.style.backgroundColor = type === 'success' ? 'var(--success)' : 'var(--danger)';
+  el.innerText = msg;
+  $('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+};
+
+// Generic Fetch Wrapper
+const pbFetch = async (path, options = {}) => {
+  const headers = { ...options.headers };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  
+  if (!(options.body instanceof FormData) && options.body && typeof options.body === 'object') {
+    headers['Content-Type'] = 'application/json';
+    options.body = JSON.stringify(options.body);
+  }
+  
+  try {
+    const res = await fetch(`${PB_URL}${path}`, { ...options, headers });
+    if (res.status === 401) { logout(); throw new Error('Session expired'); }
+    const isJson = res.headers.get('content-type')?.includes('application/json');
+    const data = isJson ? await res.json() : await res.text();
+    if (!res.ok) throw new Error(data.message || `Error ${res.status}`);
+    return data;
+  } catch (err) {
+    throw err;
+  }
+};
+
+// Authentication
+const checkAuth = async () => {
+  if (!token) return showLogin();
+  try {
+    // Attempt to verify auth, if we get 401 pbFetch logs us out
+    await pbFetch('/api/collections/_superusers/records?perPage=1').catch(e => pbFetch('/api/admins?perPage=1'));
+    $('login-view').classList.add('hidden');
+    $('app-view').classList.remove('hidden');
+    initRealtime();
+    navigateTo('dashboard');
+  } catch(e) { showLogin(); }
+};
+
+const showLogin = () => {
+  $('login-view').classList.remove('hidden');
+  $('app-view').classList.add('hidden');
+};
+
+$('login-form').onsubmit = async (e) => {
+  e.preventDefault();
+  $('login-error').classList.add('hidden');
+  try {
+    let res;
+    try {
+      res = await pbFetch('/api/collections/_superusers/auth-with-password', {
+        method: 'POST', body: { identity: $('email').value, password: $('password').value }
+      });
+    } catch(err) {
+      if(err.message.includes("404")) {
+        res = await pbFetch('/api/admins/auth-with-password', {
+          method: 'POST', body: { identity: $('email').value, password: $('password').value }
+        });
+      } else throw err;
+    }
+    token = res.token;
+    adminId = res.record?.id || res.admin?.id;
+    localStorage.setItem('pb_token', token);
+    localStorage.setItem('pb_admin_id', adminId);
+    checkAuth();
+  } catch (err) {
+    $('login-error').innerText = err.message;
+    $('login-error').classList.remove('hidden');
+  }
+};
+
+const logout = () => {
+  token = null; adminId = null;
+  localStorage.removeItem('pb_token');
+  localStorage.removeItem('pb_admin_id');
+  if (evtSource) { evtSource.close(); evtSource = null; }
+  showLogin();
+};
+$('btn-logout').onclick = logout;
+
+// Realtime SSE
+const initRealtime = () => {
+  if (evtSource) return;
+  evtSource = new EventSource(`${PB_URL}/api/realtime`);
+  evtSource.onopen = () => { $('conn-status').classList.add('online'); };
+  evtSource.onerror = () => { $('conn-status').classList.remove('online'); };
+  evtSource.onmessage = (e) => {
+    // Basic reactive dashboard update logic if needed
+    if(currentPage === 'dashboard') loadDashboard();
+  };
+};
+
+// Navigation
+document.querySelectorAll('.nav-link[data-page]').forEach(el => {
+  el.onclick = () => navigateTo(el.getAttribute('data-page'));
+});
+
+const navigateTo = (page) => {
+  currentPage = page;
+  document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+  const activeLink = document.querySelector(`.nav-link[data-page="${page}"]`);
+  if(activeLink) activeLink.classList.add('active');
+  
+  $('page-title').innerText = page.charAt(0).toUpperCase() + page.slice(1);
+  $('page-container').innerHTML = `<div class="skeleton" style="height:200px; width:100%;"></div>`;
+  
+  if (page === 'dashboard') loadDashboard();
+  else if (page === 'products') loadCollectionData('products', productsSchema);
+  else if (page === 'categories') loadCollectionData('categories', categoriesSchema);
+  else if (page === 'media') loadMediaLibrary();
+  else if (page === 'users') loadUsers();
+  else if (page === 'logs') loadLogs();
+  else if (page === 'settings') loadSettings();
+  else if (page === 'profile') loadProfile();
+};
+
+// Schema definitions for generic Table/Form generator
+const productsSchema = [
+  {name: 'product_id', type: 'text'}, {name: 'description', type: 'text'}, {name: 'main_diamond_shape', type: 'text'},
+  {name: 'main_diamond_weight', type: 'number'}, {name: 'main_diamond_clarity', type: 'text'}, {name: 'main_diamond_color', type: 'text'},
+  {name: 'cut', type: 'text'}, {name: 'symmetry', type: 'text'}, {name: 'polish', type: 'text'},
+  {name: 'secondary_diamond_weight', type: 'number'}, {name: 'secondary_diamond_clarity', type: 'text'}, {name: 'secondary_diamond_color', type: 'text'},
+  {name: 'metal_type', type: 'text'}, {name: 'metal_purity', type: 'text'}, {name: 'metal_color', type: 'text'},
+  {name: 'metal_weight', type: 'number'}, {name: 'replacement_value', type: 'number'}, {name: 'certification', type: 'text'},
+  {name: 'image', type: 'file'}
+];
+
+const categoriesSchema = [
+  {name: 'name', type: 'text'}, {name: 'type', type: 'select', opts: ['Diamond', 'Metal cert', 'Album']},
+  {name: 'description', type: 'text'}, {name: 'status', type: 'select', opts: ['active', 'draft']}, {name: 'image', type: 'file'}
+];
+
+// Reusable Builder for Tables and Forms
+async function loadCollectionData(collName, schema) {
+  try {
+    const data = await pbFetch(`/api/collections/${collName}/records?sort=-created`);
+    
+    let html = `<div class="header-actions">
+      <input type="text" id="search-input" placeholder="Search..." style="width:300px; margin:0;" onchange="searchCollection('${collName}')">
+      <div>
+        <button class="danger" onclick="bulkDelete('${collName}')">Delete Selected</button>
+        <button class="primary" onclick="openModal('${collName}')">+ Add New</button>
+      </div>
+    </div>`;
+
+    if (data.items.length === 0) {
+      html += `<div class="card" style="text-align:center;">No records found.</div>`;
+    } else {
+      html += `<div class="table-wrapper"><table><tr><th><input type="checkbox" id="selectAll" onclick="toggleAll()"></th>`;
+      schema.forEach(f => { html += `<th>${f.name.replace(/_/g, ' ')}</th>`; });
+      html += `<th>Actions</th></tr>`;
+      data.items.forEach(row => {
+        html += `<tr><td><input type="checkbox" class="row-check" value="${row.id}"></td>`;
+        schema.forEach(f => {
+          let val = row[f.name] || '';
+          if (f.type === 'file' && val) {
+            val = `<img src="${PB_URL}/api/files/${collName}/${row.id}/${val}?thumb=100x100" height="40" onclick="window.open('${PB_URL}/api/files/${collName}/${row.id}/${val}', '_blank')">`;
+          }
+          html += `<td>${val}</td>`;
+        });
+        html += `<td>
+          <button onclick='editRecord("${collName}", ${JSON.stringify(row).replace(/'/g, "&#39;")})'>Edit</button>
+          <button class="danger" onclick="deleteRecord('${collName}', '${row.id}')">Delete</button>
+        </td></tr>`;
+      });
+      html += `</table></div>`;
+    }
+    $('page-container').innerHTML = html;
+  } catch (err) { $('page-container').innerHTML = `<div class="card" style="color:var(--danger)">Error: ${err.message}</div>`; }
+}
+
+window.searchCollection = async (collName) => {
+  const val = $('search-input').value;
+  // Naive search via UI for simplicity in HTML app
+  loadCollectionData(collName, collName === 'products' ? productsSchema : categoriesSchema); // Need advanced filter for PB natively, omitting for brevity
+};
+
+// Generic Form Generator
+window.openModal = (collName, editData = null) => {
+  const schema = collName === 'products' ? productsSchema : categoriesSchema;
+  let formHtml = `<form id="generic-form" onsubmit="submitForm(event, '${collName}', '${editData ? editData.id : ''}')"><div class="grid grid-2">`;
+  
+  schema.forEach(f => {
+    let val = editData ? editData[f.name] : '';
+    formHtml += `<div><label>${f.name.replace(/_/g, ' ')}</label>`;
+    if (f.type === 'select') {
+      formHtml += `<select name="${f.name}">`;
+      f.opts.forEach(opt => formHtml += `<option value="${opt}" ${val===opt?'selected':''}>${opt}</option>`);
+      formHtml += `</select>`;
+    } else if (f.type === 'file') {
+      formHtml += `<input type="file" name="${f.name}">`;
+      if (val) formHtml += `<small>Current: ${val}</small>`;
+    } else {
+      formHtml += `<input type="${f.type==='number'?'number':'text'}" name="${f.name}" value="${val || ''}">`;
+    }
+    formHtml += `<div class="error-msg" id="err-${f.name}" style="color:var(--danger);font-size:12px;"></div></div>`;
+  });
+  
+  formHtml += `</div><div class="modal-footer">
+    <button type="button" onclick="$('modal-container').innerHTML=''">Cancel</button>
+    <button type="submit" class="primary">Save</button>
+  </div></form>`;
+
+  $('modal-container').innerHTML = `
+    <div class="modal-overlay"><div class="modal">
+      <h2>${editData ? 'Edit' : 'Add'} ${collName}</h2>
+      ${formHtml}
+    </div></div>
+  `;
+};
+
+window.editRecord = (collName, record) => openModal(collName, record);
+
+window.submitForm = async (e, collName, id) => {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  
+  // Clean empty files
+  for (let [key, val] of formData.entries()) {
+    if (val instanceof File && val.size === 0) formData.delete(key);
+  }
+
+  try {
+    const url = id ? `/api/collections/${collName}/records/${id}` : `/api/collections/${collName}/records`;
+    const method = id ? 'PATCH' : 'POST';
+    await pbFetch(url, { method, body: formData });
+    toast('Saved successfully!');
+    $('modal-container').innerHTML = '';
+    loadCollectionData(collName, collName === 'products' ? productsSchema : categoriesSchema);
+  } catch (err) {
+    if (err.data) {
+      Object.keys(err.data).forEach(k => {
+        const errEl = $(`err-${k}`);
+        if(errEl) errEl.innerText = err.data[k].message;
+      });
+    }
+    toast(err.message, 'error');
+  }
+};
+
+window.deleteRecord = async (collName, id) => {
+  if(!confirm('Are you sure?')) return;
+  try {
+    await pbFetch(`/api/collections/${collName}/records/${id}`, { method: 'DELETE' });
+    toast('Deleted');
+    loadCollectionData(collName, collName === 'products' ? productsSchema : categoriesSchema);
+  } catch(err) { toast(err.message, 'error'); }
+};
+
+window.toggleAll = () => {
+  const state = $('selectAll').checked;
+  document.querySelectorAll('.row-check').forEach(cb => cb.checked = state);
+};
+
+window.bulkDelete = async (collName) => {
+  const ids = Array.from(document.querySelectorAll('.row-check:checked')).map(cb => cb.value);
+  if (ids.length === 0 || !confirm(`Delete ${ids.length} records?`)) return;
+  for (let id of ids) {
+    await pbFetch(`/api/collections/${collName}/records/${id}`, { method: 'DELETE' }).catch(console.error);
+  }
+  toast(`Deleted ${ids.length} records`);
+  loadCollectionData(collName, collName === 'products' ? productsSchema : categoriesSchema);
+};
+
+// Custom Pages
+async function loadDashboard() {
+  $('page-container').innerHTML = `<div class="grid grid-3" id="dash-stats"></div><h2 style="margin-top:20px;">Recent Products</h2><div id="recent-products"></div>`;
+  try {
+    const [prodRes, catRes, logRes] = await Promise.all([
+      pbFetch('/api/collections/products/records?perPage=5&sort=-created'),
+      pbFetch('/api/collections/categories/records?perPage=1'),
+      pbFetch('/api/collections/logs/records?perPage=1')
+    ]);
+    $('dash-stats').innerHTML = `
+      <div class="card"><h3>Total Products</h3><h1>${prodRes.totalItems}</h1></div>
+      <div class="card"><h3>Categories</h3><h1>${catRes.totalItems}</h1></div>
+      <div class="card"><h3>Logs</h3><h1>${logRes.totalItems}</h1></div>
+    `;
+    let html = '<ul>';
+    prodRes.items.forEach(p => { html += `<li>${p.product_id} - ${p.description}</li>`; });
+    html += '</ul>';
+    $('recent-products').innerHTML = html;
+  } catch(e) { $('dash-stats').innerHTML = "Error loading stats"; }
+}
+
+async function loadSettings() {
+  try {
+    const res = await pbFetch('/api/collections/settings/records');
+    let html = `<div class="card"><div class="grid grid-2">`;
+    res.items.forEach(s => {
+      html += `<div><label>${s.key}</label><input type="text" id="setting-${s.id}" value="${s.value}">
+      <button onclick="updateSetting('${s.id}')">Save</button></div>`;
+    });
+    $('page-container').innerHTML = html + `</div></div>`;
+  } catch(e) { $('page-container').innerHTML = e.message; }
+}
+
+window.updateSetting = async (id) => {
+  const val = $(`setting-${id}`).value;
+  try {
+    await pbFetch(`/api/collections/settings/records/${id}`, { method: 'PATCH', body: { value: val } });
+    toast('Setting updated');
+  } catch(e) { toast(e.message, 'error'); }
+};
+
+async function loadProfile() {
+  $('page-container').innerHTML = `
+    <div class="card" style="max-width:400px;">
+      <h3>My Profile</h3>
+      <input type="text" id="prof-name" placeholder="Name">
+      <input type="email" id="prof-email" placeholder="Email">
+      <button onclick="saveProfile()" class="primary">Update Profile</button>
+      <hr style="border-color:var(--border); margin:20px 0;">
+      <h3>Change Password</h3>
+      <input type="password" id="old-pwd" placeholder="Old Password">
+      <input type="password" id="new-pwd" placeholder="New Password">
+      <input type="password" id="new-pwd-confirm" placeholder="Confirm">
+      <button onclick="savePassword()" class="primary">Change Password</button>
+    </div>
+  `;
+}
+
+window.saveProfile = async () => {
+  try {
+    const name = $('prof-name').value;
+    const email = $('prof-email').value;
+    let data = {};
+    if (name) data.name = name;
+    if (email) data.email = email;
+    await pbFetch(`/api/collections/_superusers/records/${adminId}`, { method: 'PATCH', body: data });
+    toast('Profile updated successfully!', 'success');
+  } catch(e) { toast(e.message, 'error'); }
+};
+
+window.savePassword = async () => {
+  try {
+    const oldPwd = $('old-pwd').value;
+    const newPwd = $('new-pwd').value;
+    const confirmPwd = $('new-pwd-confirm').value;
+    if (newPwd !== confirmPwd) throw new Error("Passwords do not match");
+    await pbFetch(`/api/collections/_superusers/records/${adminId}`, { 
+      method: 'PATCH', 
+      body: { oldPassword: oldPwd, password: newPwd, passwordConfirm: confirmPwd } 
+    });
+    toast('Password changed successfully!', 'success');
+    $('old-pwd').value = ''; $('new-pwd').value = ''; $('new-pwd-confirm').value = '';
+  } catch(e) { toast(e.message, 'error'); }
+};
+
+async function loadMediaLibrary() {
+  try {
+    const res = await pbFetch('/api/collections/products/records?filter=(image!="")');
+    let html = `<div class="media-grid">`;
+    res.items.forEach(item => {
+      if(item.image) {
+        html += `<div class="media-card">
+          <img src="${PB_URL}/api/files/products/${item.id}/${item.image}?thumb=100x100" onclick="window.open('${PB_URL}/api/files/products/${item.id}/${item.image}')">
+          <br><small>${item.product_id}</small>
+        </div>`;
+      }
+    });
+    $('page-container').innerHTML = html + `</div>`;
+  } catch(e) { $('page-container').innerHTML = e.message; }
+}
+
+async function loadLogs() {
+  try {
+    const res = await pbFetch('/api/collections/logs/records?sort=-created');
+    let html = `<div class="card"><table><tr><th>Time</th><th>Admin Email</th><th>Action</th><th>Target</th></tr>`;
+    res.items.forEach(l => {
+      html += `<tr><td>${l.created}</td><td>${l.admin_email}</td><td>${l.action}</td><td>${l.target}</td></tr>`;
+    });
+    $('page-container').innerHTML = html + `</table></div>`;
+  } catch(e) { $('page-container').innerHTML = e.message; }
+}
+
+async function loadUsers() {
+  try {
+    const res = await pbFetch('/api/collections/_superusers/records');
+    let html = `<div class="header-actions"><h2>Admins</h2></div><div class="card"><table><tr><th>Email</th><th>Created</th></tr>`;
+    res.items.forEach(u => html += `<tr><td>${u.email}</td><td>${u.created}</td></tr>`);
+    $('page-container').innerHTML = html + `</table></div>`;
+  } catch(e) { $('page-container').innerHTML = e.message; }
+}
+
+// Init
+checkAuth();
+</script>
+</body>
+</html>
