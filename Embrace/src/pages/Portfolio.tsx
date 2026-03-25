@@ -3,21 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FadeUp } from '@/components/AnimationWrappers';
-import { listMedia, type MediaImage } from '@/lib/media';
-import jewelryCatalog from '@/data/jewelryCatalog.json';
+import { getProducts, getImageUrl } from '@/lib/pocketbase';
 
 const SAVED_PROJECTS_KEY = 'savedPortfolioProjects';
-
-type Project = {
-  id: string;
-  img: string;
-  imgMedium?: string;
-  imgLarge?: string;
-  alt: string;
-  title: string;
-  cat: string;
-  desc: string;
-};
 
 type CatalogItem = {
   id: string;
@@ -44,6 +32,18 @@ type CatalogItem = {
   metalWeight?: string;
   replacementValue?: string;
   certification?: string;
+};
+
+type Project = {
+  id: string;
+  img: string;
+  imgMedium?: string;
+  imgLarge?: string;
+  alt: string;
+  title: string;
+  cat: string;
+  desc: string;
+  catalogItem?: CatalogItem;
 };
 
 type SpecRow = {
@@ -116,217 +116,6 @@ function SpecAccordionSection({
   );
 }
 
-function toTitle(value: string) {
-  return value
-    .replace(/\.[^.]+$/, '')
-    .replace(/[()]/g, ' ')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function toSlug(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-function categoryFromPath(relativePath: string) {
-  const folder = (relativePath.split('/')[0] || '').toLowerCase();
-  if (folder === 'casting') return 'Casting';
-  if (folder === 'refining') return 'Refining';
-  return 'Custom';
-}
-
-function descriptionFromCategory(cat: string) {
-  if (cat === 'Casting') return 'High-precision casting engineered for timeless luxury pieces';
-  if (cat === 'Refining') return 'Precision gold refining with premium finishing details';
-  return 'Bespoke custom design crafted for signature statements';
-}
-
-const JEWELRY_CATALOG: CatalogItem[] = jewelryCatalog.jewelryCatalog;
-
-const KEYWORD_PRIORITY = [
-  'eritrea',
-  'cuban',
-  'lion',
-  'jesus',
-  'archangel',
-  'byzantine',
-  'franco',
-  'bracelet',
-  'necklace',
-  'pendant',
-];
-
-function normalizeForMatch(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/&/g, 'and')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
-}
-
-
-function normalizeId(value: string) {
-  return value.trim().toLowerCase();
-}
-
-function stripExtension(value: string) {
-  return value.replace(/\.[^.]+$/, '');
-}
-
-function getFileNameFromSrc(src: string | undefined) {
-  if (!src) return '';
-  const clean = src.split('?')[0].split('#')[0];
-  try {
-    const url = new URL(clean, window.location.origin);
-    const base = url.pathname.split('/').pop() || '';
-    return decodeURIComponent(base);
-  } catch {
-    const base = clean.split('/').pop() || '';
-    return decodeURIComponent(base);
-  }
-}
-
-function scoreNameMatch(title: string, name: string) {
-  const titleNorm = normalizeForMatch(title);
-  const nameNorm = normalizeForMatch(name);
-  if (!titleNorm || !nameNorm) return -1;
-  if (titleNorm === nameNorm) return 10000;
-
-  let score = 0;
-  if (nameNorm.includes(titleNorm) || titleNorm.includes(nameNorm)) score += 500;
-
-  const titleTokens = new Set(titleNorm.split(' ').filter(Boolean));
-  const nameTokens = new Set(nameNorm.split(' ').filter(Boolean));
-  let overlap = 0;
-  titleTokens.forEach((token) => {
-    if (nameTokens.has(token)) overlap += 1;
-  });
-  score += overlap * 25;
-
-  let keywordHits = 0;
-  KEYWORD_PRIORITY.forEach((keyword) => {
-    const inTitle = titleNorm.includes(keyword);
-    const inName = nameNorm.includes(keyword);
-    if (inTitle && inName) keywordHits += 1;
-  });
-  score += keywordHits * 200;
-
-  score -= Math.abs(titleNorm.length - nameNorm.length);
-  return score;
-}
-
-function findSpecByName(title: string, fileNameBase: string) {
-  if (!title && !fileNameBase) return null;
-  let best: CatalogItem | null = null;
-  let bestScore = -Infinity;
-  let tie = false;
-
-  JEWELRY_CATALOG.forEach((item) => {
-    const scoreFromTitle = title ? scoreNameMatch(title, item.name) : -1;
-    const scoreFromFile = fileNameBase ? scoreNameMatch(fileNameBase, item.name) : -1;
-    const score = Math.max(scoreFromTitle, scoreFromFile);
-    if (score > bestScore) {
-      bestScore = score;
-      best = item;
-      tie = false;
-    } else if (score === bestScore) {
-      tie = true;
-    }
-  });
-
-  if (bestScore <= 0 || tie) return null;
-  return best;
-}
-
-function findCatalogItem(project: Project | null) {
-  if (!project) return null;
-  const src = project.imgLarge || project.imgMedium || project.img;
-  const fileName = getFileNameFromSrc(src);
-  if (fileName) {
-    const normalizedFileName = normalizeId(fileName);
-    const direct = JEWELRY_CATALOG.find((item) => normalizeId(item.id) === normalizedFileName);
-    if (direct) return direct;
-    const baseMatch = JEWELRY_CATALOG.find(
-      (item) => stripExtension(normalizeId(item.id)) === stripExtension(normalizedFileName)
-    );
-    if (baseMatch) return baseMatch;
-  }
-  const baseName = fileName ? stripExtension(fileName) : '';
-  const normalizedTitle = normalizeForMatch(project.title);
-  if (baseName === 'portfolio-2' || normalizedTitle === 'portfolio 2') {
-    return JEWELRY_CATALOG.find((item) => normalizeId(item.id) === 'portfolio-2.jpg') || null;
-  }
-  if (baseName === 'portfolio-3' || normalizedTitle === 'portfolio 3') {
-    return JEWELRY_CATALOG.find((item) => normalizeId(item.id) === 'portfolio-3.jpg') || null;
-  }
-  return findSpecByName(project.title, baseName);
-}
-
-
-function hasCatalogMatch(project: Project) {
-  const fileName = getFileNameFromSrc(project.imgLarge || project.imgMedium || project.img);
-  if (!fileName) return false;
-  const normalizedFileName = normalizeId(fileName);
-  return JEWELRY_CATALOG.some(
-    (item) => normalizeId(item.id) === normalizedFileName || stripExtension(normalizeId(item.id)) === stripExtension(normalizedFileName)
-  );
-}
-
-const PORTFOLIO_EXCLUDE_IDS = new Set(['p (7).png', 'portfolio-4.jpg', 'f (4).jpg']);
-const PORTFOLIO_EXCLUDE_TITLES = new Set(['p 7', 'portfolio 4', 'f 4']);
-
-function isModalAllowed(project: Project | null) {
-  return !!project;
-}
-
-function isPortfolioExcluded(project: Project) {
-  const catalogItem = findCatalogItem(project);
-  if (catalogItem && PORTFOLIO_EXCLUDE_IDS.has(catalogItem.id)) return true;
-  const titleNorm = normalizeForMatch(project.title);
-  if (titleNorm && PORTFOLIO_EXCLUDE_TITLES.has(titleNorm)) return true;
-  const fileName = getFileNameFromSrc(project.imgLarge || project.imgMedium || project.img);
-  return fileName ? PORTFOLIO_EXCLUDE_IDS.has(fileName) : false;
-}
-
-const fallbackProjects: Project[] = Object.entries(localImageModules)
-  .map(([modulePath, img], index) => {
-    const relativePath = modulePath.replace('../assets/portfolio/', '');
-    const name = relativePath.split('/').pop() || relativePath;
-    const title = toTitle(name);
-    const cat = categoryFromPath(relativePath);
-    return {
-      id: `${toSlug(relativePath)}-${index + 1}`,
-      img,
-      alt: title,
-      title,
-      cat,
-      desc: descriptionFromCategory(cat),
-    };
-  })
-  .filter((item) => {
-    if (isPortfolioExcluded(item)) return false;
-    const t = item.title.toLowerCase();
-    return t !== 'hero bg' && t !== 'about bg' && t !== 'logo';
-  });
-
-function mapMediaImageToProject(image: MediaImage): Project {
-  return {
-    id: image.id,
-    img: image.variants.thumb || image.variants.medium || image.variants.large,
-    imgMedium: image.variants.medium,
-    imgLarge: image.variants.large,
-    alt: image.alt || image.title,
-    title: image.title,
-    cat: image.category,
-    desc: image.description,
-  };
-}
-
 function buildSrcSet(project: Project) {
   const urls = [project.img, project.imgMedium, project.imgLarge].filter(Boolean) as string[];
   const uniqueUrls = Array.from(new Set(urls));
@@ -337,9 +126,13 @@ function buildSrcSet(project: Project) {
   return `${project.img} 480w, ${medium} 960w, ${large} 1440w`;
 }
 
+function isModalAllowed(project: Project | null) {
+  return !!project;
+}
+
 export default function Portfolio() {
   const [active, setActive] = useState('All');
-  const [projects, setProjects] = useState<Project[]>(fallbackProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [selected, setSelected] = useState<Project | null>(null);
   const [savedProjects, setSavedProjects] = useState<Record<string, boolean>>({});
   const [loadingAction, setLoadingAction] = useState<'reserve' | 'enquire' | null>(null);
@@ -357,7 +150,8 @@ export default function Portfolio() {
     () => (active === 'All' ? projects : projects.filter((p) => p.cat === active)),
     [active, projects],
   );
-  const catalogItem = findCatalogItem(selected);
+  
+  const catalogItem = selected?.catalogItem;
   const displayTitle = catalogItem?.name || selected?.title || 'N/A';
   const displaySpec = catalogItem ?? {
     name: displayTitle,
@@ -382,24 +176,54 @@ export default function Portfolio() {
 
     const loadCatalog = async () => {
       try {
-        const response = await listMedia({ limit: 500 });
+        const dbProducts = await getProducts();
         if (cancelled) return;
 
-        if (response.items.length > 0) {
-          const mediaProjects = response.items.map(mapMediaImageToProject).filter((item) => !isPortfolioExcluded(item));
-          const matchedCount = mediaProjects.filter(hasCatalogMatch).length;
-          if (matchedCount > 0 && matchedCount === mediaProjects.length) {
-            setProjects(mediaProjects);
-          } else {
-            setProjects(fallbackProjects);
-          }
-        } else {
-          setProjects(fallbackProjects);
+        if (dbProducts && dbProducts.length > 0) {
+          const pbProjects = dbProducts.map(p => {
+             const imgUrl = p.image ? getImageUrl(p.collectionId, p.id, p.image) : '';
+             
+             return {
+                id: p.id,
+                img: imgUrl,
+                imgMedium: imgUrl,
+                imgLarge: imgUrl,
+                alt: p.name || 'Jewelry Piece',
+                title: p.name || 'Jewelry Piece',
+                cat: p.product_id ? 'Store' : 'Custom',
+                desc: p.description || 'Luxurious Diamond Piece',
+                catalogItem: {
+                   id: p.id,
+                   name: p.name,
+                   shape: p.shape,
+                   color: p.color,
+                   clarity: p.clarity,
+                   carat: p.carat,
+                   productId: p.product_id,
+                   description: p.description,
+                   mainDiamondShape: p.main_diamond_shape,
+                   mainDiamondWeight: p.main_diamond_weight,
+                   mainDiamondClarity: p.main_diamond_clarity,
+                   mainDiamondColor: p.main_diamond_color,
+                   cut: p.cut,
+                   symmetry: p.symmetry,
+                   polish: p.polish,
+                   secondaryDiamondWeight: p.secondary_diamond_weight,
+                   secondaryDiamondClarity: p.secondary_diamond_clarity,
+                   secondaryDiamondColor: p.secondary_diamond_color,
+                   metalType: p.metal_type,
+                   metalPurity: p.metal_purity,
+                   metalColor: p.metal_color,
+                   metalWeight: p.metal_weight,
+                   replacementValue: p.replacement_value,
+                   certification: p.certification
+                }
+             };
+          });
+          setProjects(pbProjects);
         }
-      } catch {
-        if (!cancelled) {
-          setProjects(fallbackProjects);
-        }
+      } catch (err) {
+        console.error("Failed to load products from PocketBase", err);
       }
     };
 
@@ -535,7 +359,7 @@ export default function Portfolio() {
           <motion.div layout className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             <AnimatePresence mode="popLayout">
               {filtered.map((project, i) => {
-                const catalogItem = findCatalogItem(project);
+                const catalogItem = project.catalogItem;
                 const cardTitle = catalogItem?.name ?? project.title;
                 const cardAlt = catalogItem?.name ?? (project.alt || project.title);
 

@@ -25,3 +25,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Database and Binaries
+pb_data/
+pocketbase/pocketbase
+pocketbase/pocketbase.exe
