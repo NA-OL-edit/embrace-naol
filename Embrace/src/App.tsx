@@ -20,7 +20,7 @@ const queryClient = new QueryClient();
 
 const AdminRedirect = () => {
   if (typeof window !== "undefined") {
-    window.location.href = "/admin/index.html";
+    window.location.href = "/admin-panel.html";
   }
   return null;
 };
