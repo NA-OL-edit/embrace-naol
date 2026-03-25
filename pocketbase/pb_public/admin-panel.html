@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Embrace Admin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}
+body{background:#f5f5f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.shell{display:flex;height:95vh;width:100%;max-width:1400px;border:0.5px solid #d3d1c7;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.08)}
+.sidebar{width:190px;background:#f1efe8;border-right:0.5px solid #d3d1c7;display:flex;flex-direction:column;flex-shrink:0}
+.logo{padding:16px;font-size:13px;font-weight:500;border-bottom:0.5px solid #d3d1c7;color:#5f5e5a}
+.logo span{color:#2c2c2a;font-weight:500}
+.nav-section{padding:10px 0 4px;font-size:11px;color:#b4b2a9;padding-left:16px;letter-spacing:.04em}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;cursor:pointer;font-size:13px;color:#5f5e5a;border-left:2px solid transparent;transition:all .12s}
+.nav-item:hover{background:#fff;color:#2c2c2a}
+.nav-item.active{background:#fff;color:#2c2c2a;border-left-color:#534AB7;font-weight:500}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.sidebar-foot{margin-top:auto;padding:12px 16px;border-top:0.5px solid #d3d1c7;font-size:12px;color:#b4b2a9;cursor:pointer}
+.sidebar-foot:hover{color:#e24b4a}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:0.5px solid #d3d1c7;background:#fff}
+.page-title{font-size:14px;font-weight:500}
+.topbar-r{display:flex;gap:8px;align-items:center}
+.btn{padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;border:0.5px solid #d3d1c7;background:transparent;color:#2c2c2a;transition:all .12s}
+.btn:hover{background:#f1efe8}
+.btn-primary{background:#534AB7;color:#fff;border-color:#534AB7}
+.btn-primary:hover{background:#3C3489}
+.btn-danger{color:#e24b4a;border-color:rgba(226,75,74,.3)}
+.btn-danger:hover{background:rgba(226,75,74,.08)}
+.btn-sm{padding:3px 9px;font-size:11px}
+.content{flex:1;overflow-y:auto;padding:16px;}
+.page{display:none}
+.page.active{display:block}
+.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.stat{background:#f1efe8;border-radius:8px;padding:12px}
+.stat-l{font-size:11px;color:#888780;margin-bottom:4px}
+.stat-v{font-size:20px;font-weight:500}
+.badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:11px;margin-top:3px}
+.badge-g{background:#eaf3de;color:#3b6d11}
+.badge-y{background:#faeeda;color:#854f0b}
+.badge-b{background:#e6f1fb;color:#185fa5}
+.card{background:#fff;border:0.5px solid #d3d1c7;border-radius:12px;overflow:hidden;margin-bottom:12px}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:0.5px solid #d3d1c7}
+.card-title{font-size:13px;font-weight:500}
+.search-wrap{position:relative}
+.search-wrap input{padding:5px 10px 5px 28px;border:0.5px solid #d3d1c7;border-radius:8px;font-size:12px;background:#f1efe8;color:#2c2c2a;width:180px;outline:none}
+.search-wrap input:focus{border-color:#534AB7}
+.search-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;color:#b4b2a9}
+table{width:100%;border-collapse:collapse;table-layout:fixed;}
+th{text-align:left;font-size:11px;color:#888780;font-weight:400;padding:8px 14px;background:#f1efe8;border-bottom:0.5px solid #d3d1c7}
+td{padding:9px 14px;font-size:12px;border-bottom:0.5px solid #d3d1c7;color:#2c2c2a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f1efe8}
+.actions{display:flex;gap:5px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-group{margin-bottom:12px}
+.form-label{font-size:11px;color:#888780;margin-bottom:5px;display:block;font-weight:500}
+.form-input,.form-select,.form-textarea{width:100%;padding:7px 10px;border:0.5px solid #d3d1c7;border-radius:8px;font-size:12px;background:#f1efe8;color:#2c2c2a;outline:none}
+.form-input:focus,.form-select:focus{border-color:#534AB7}
+.form-textarea{resize:vertical}
+.upload-zone{border:1px dashed #d3d1c7;border-radius:8px;padding:18px;text-align:center;cursor:pointer;color:#888780;font-size:12px}
+.upload-zone:hover{border-color:#534AB7;color:#534AB7}
+.media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;padding:12px}
+.media-item{aspect-ratio:1;border-radius:8px;background:#f1efe8;border:0.5px solid #d3d1c7;display:flex;align-items:center;justify-content:center;font-size:11px;color:#b4b2a9;cursor:pointer;transition:all .12s;overflow:hidden;}
+.media-item img{width:100%;height:100%;object-fit:cover;}
+.media-item:hover{border-color:#534AB7;color:#534AB7}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:#e6f1fb;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#185fa5;flex-shrink:0}
+.role-pill{padding:2px 8px;border-radius:10px;font-size:11px}
+.role-admin{background:#fcebeb;color:#a32d2d}
+.role-editor{background:#e6f1fb;color:#185fa5}
+.role-viewer{background:#f1efe8;color:#888780}
+.log-row{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:0.5px solid #d3d1c7;font-size:12px}
+.log-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.log-time{font-size:11px;color:#b4b2a9;min-width:80px}
+.toast{position:fixed;bottom:24px;right:24px;background:#534AB7;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal{background:#fff;border:0.5px solid #d3d1c7;border-radius:12px;width:380px;max-height:85%;overflow-y:auto;display:flex;flex-direction:column;}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:0.5px solid #d3d1c7}
+.modal-title{font-size:14px;font-weight:500}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:#b4b2a9;line-height:1}
+.modal-body{padding:16px;overflow-y:auto;flex:1;}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:0.5px solid #d3d1c7}
+.section-desc{font-size:12px;color:#888780;margin-bottom:14px}
+.settings-group{background:#fff;border:0.5px solid #d3d1c7;border-radius:12px;margin-bottom:12px;overflow:hidden}
+.settings-group-title{font-size:12px;font-weight:500;padding:10px 14px;background:#f1efe8;border-bottom:0.5px solid #d3d1c7}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:0.5px solid #d3d1c7}
+.settings-row:last-child{border-bottom:none}
+.settings-label{font-size:12px;color:#2c2c2a}
+.settings-sub{font-size:11px;color:#888780}
+.toggle{width:28px;height:16px;border-radius:8px;background:#d3d1c7;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:#534AB7}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .2s}
+.toggle.on::after{transform:translateX(12px)}
+
+/* Login added styles */
+#login-view { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; position: absolute; top:0; left:0; background: #f5f5f0; z-index: 1000; }
+.login-box { background: #fff; padding: 30px; border-radius: 12px; border: 1px solid #d3d1c7; width: 340px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+.login-box h2 { font-size: 18px; font-weight: 500; margin-bottom: 20px; color: #2c2c2a; }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Login View -->
+<div id="login-view">
+  <div class="login-box">
+    <h2>Admin Login</h2>
+    <div id="login-error" class="hidden" style="color: #e24b4a; margin-bottom: 15px; font-size: 13px;"></div>
+    <form id="login-form">
+      <div class="form-group"><label class="form-label">Email</label><input type="email" id="email" class="form-input" required></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" id="password" class="form-input" required></div>
+      <button type="submit" class="btn btn-primary" style="width:100%; margin-top:10px;">Login</button>
+    </form>
+  </div>
+</div>
+
+<div class="shell hidden" id="app-view">
+  <div class="sidebar">
+    <div class="logo"><span>Embrace</span> Admin</div>
+    <div style="overflow-y:auto;flex:1">
+      <div class="nav-section">Main</div>
+      <div class="nav-item active" onclick="go('dashboard',this)"><div class="dot"></div>Dashboard</div>
+      <div class="nav-section">Catalog</div>
+      <div class="nav-item" onclick="go('categories',this)"><div class="dot"></div>Categories</div>
+      <div class="nav-item" onclick="go('diamonds',this)"><div class="dot"></div>Diamonds</div>
+      <div class="nav-section">Content</div>
+      <div class="nav-item" onclick="go('media',this)"><div class="dot"></div>Media library</div>
+      <div class="nav-section">Admin</div>
+      <div class="nav-item" onclick="go('users',this)"><div class="dot"></div>Users</div>
+      <div class="nav-item" onclick="go('auditlog',this)"><div class="dot"></div>Audit log</div>
+      <div class="nav-section">Account</div>
+      <div class="nav-item" onclick="go('settings',this)"><div class="dot"></div>Settings</div>
+      <div class="nav-item" onclick="go('profile',this)"><div class="dot"></div>My profile</div>
+    </div>
+    <div class="sidebar-foot" onclick="logout()">Sign out</div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="ptitle">Dashboard</div>
+      <div class="topbar-r">
+        <div style="font-size:12px;color:#888780" id="admin-user-email">Admin</div>
+        <div class="user-avatar" id="admin-user-initial">A</div>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="stat-grid">
+          <div class="stat"><div class="stat-l">Categories</div><div class="stat-v" id="dash-cat">0</div><div class="badge badge-g">Active</div></div>
+          <div class="stat"><div class="stat-l">Diamonds</div><div class="stat-v" id="dash-dia">0</div><div class="badge badge-g">Live</div></div>
+          <div class="stat"><div class="stat-l">Total Logs</div><div class="stat-v" id="dash-log">0</div><div class="badge badge-b">System</div></div>
+          <div class="stat"><div class="stat-l">Pending</div><div class="stat-v">0</div><div class="badge badge-y">Review</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Recent activity</div></div>
+          <div id="dash-recent-logs">
+            <!-- recent logs here -->
+            <div style="padding:12px; font-size:12px; color:#888780">Loading logs...</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Quick actions</div></div>
+          <div style="padding:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="openCatModal()">+ Add category</button>
+            <button class="btn" onclick="openDiamondModal()">+ Add diamond</button>
+            <button class="btn" onclick="go('media',document.querySelector('[onclick*=media]'))">Media library</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CATEGORIES -->
+      <div class="page" id="page-categories">
+        <p class="section-desc">Manage diamond categories — add, edit, or delete types and albums.</p>
+        <div class="card" style="overflow-x:auto;">
+          <div class="card-head">
+            <div class="card-title">All categories</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" onclick="openCatModal()">+ Add category</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th style="width:200px">Name</th><th style="width:120px">Type</th><th>Status</th><th>Desc</th><th style="width:120px">Actions</th></tr></thead>
+            <tbody id="tbody-categories">
+              <!-- populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- DIAMONDS -->
+      <div class="page" id="page-diamonds">
+        <p class="section-desc">Full diamond listing — each entry links to its detail, certification, and images.</p>
+        <div class="card" style="overflow-x:auto;">
+          <div class="card-head">
+            <div class="card-title">Diamond listings</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" onclick="openDiamondModal()">+ Add diamond</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th style="width:80px">ID</th><th>Description</th><th style="width:100px">Shape</th><th style="width:80px">Weight</th><th>Actions</th></tr></thead>
+            <tbody id="tbody-diamonds">
+               <!-- populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MEDIA -->
+      <div class="page" id="page-media">
+        <p class="section-desc">View images and certification documents attached to products.</p>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Media library</div>
+          </div>
+          <div class="media-grid" id="grid-media">
+             <!-- populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div class="page" id="page-users">
+        <p class="section-desc">View admin accounts.</p>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Admin users</div>
+          </div>
+          <table>
+            <thead><tr><th>Email</th><th>Created</th><th>Role</th></tr></thead>
+            <tbody id="tbody-users">
+               <!-- populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AUDIT LOG -->
+      <div class="page" id="page-auditlog">
+        <p class="section-desc">Full history of all admin actions — who changed what and when.</p>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Audit log</div>
+          </div>
+          <div id="list-auditlog">
+            <!-- populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="page" id="page-settings">
+        <p class="section-desc">Global site configuration and preferences.</p>
+        <div class="settings-group">
+          <div class="settings-group-title">Dynamic Settings</div>
+          <div style="padding:12px" id="list-settings">
+            <!-- populated by JS -->
+          </div>
+        </div>
+        <div style="text-align:right"><button class="btn btn-primary" onclick="showToast('Nothing to save manually')">Auto-saved</button></div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="page" id="page-profile">
+        <p class="section-desc">Your account details and security settings.</p>
+        <div class="settings-group">
+          <div class="settings-group-title">Personal info</div>
+          <div style="padding:12px">
+            <div class="form-row">
+              <div class="form-group" style="margin:0"><label class="form-label">Name</label><input type="text" id="prof-name" class="form-input" /></div>
+              <div class="form-group" style="margin:0"><label class="form-label">Email</label><input type="email" id="prof-email" class="form-input" /></div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:10px" onclick="saveProfile()">Update Profile</button>
+          </div>
+        </div>
+        <div class="settings-group">
+          <div class="settings-group-title">Change password</div>
+          <div style="padding:12px">
+            <div class="form-group"><label class="form-label">Current password</label><input type="password" id="old-pwd" class="form-input" /></div>
+            <div class="form-row">
+              <div class="form-group" style="margin:0"><label class="form-label">New password</label><input type="password" id="new-pwd" class="form-input" /></div>
+              <div class="form-group" style="margin:0"><label class="form-label">Confirm</label><input type="password" id="new-pwd-confirm" class="form-input" /></div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:10px" onclick="savePassword()">Change Password</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+
+<!-- Category Modal -->
+<div id="modal-cat" class="modal-wrap" style="display:none" onclick="closeModal('cat')">
+  <form class="modal" onclick="event.stopPropagation()" onsubmit="submitCategory(event)">
+    <div class="modal-head"><div class="modal-title" id="cat-modal-title">Add / edit category</div><button type="button" class="modal-close" onclick="closeModal('cat')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="cat-id" />
+      <div class="form-group"><label class="form-label">Type</label><select id="cat-type" class="form-select"><option value="Diamond">Diamond</option><option value="Metal cert">Metal cert</option><option value="Album">Album</option></select></div>
+      <div class="form-group"><label class="form-label">Name</label><input id="cat-name" class="form-input" required /></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea id="cat-desc" class="form-input form-textarea" rows="2"></textarea></div>
+      <div class="form-group"><label class="form-label">Status</label><select id="cat-status" class="form-select"><option value="active">Active</option><option value="draft">Draft</option></select></div>
+      <div class="form-group"><label class="form-label">Image</label>
+        <div id="cat-img-preview" style="display:none;margin-bottom:8px">
+          <img id="cat-current-img" src="" style="max-height:80px;border-radius:4px;border:1px solid #d3d1c7">
+        </div>
+        <input type="file" id="cat-img" class="form-input" />
+      </div>
+    </div>
+    <div class="modal-foot"><button type="button" class="btn" onclick="closeModal('cat')">Cancel</button><button type="submit" class="btn btn-primary">Save category</button></div>
+  </form>
+</div>
+
+<!-- Diamond (Product) Modal -->
+<div id="modal-diamond" class="modal-wrap" style="display:none" onclick="closeModal('diamond')">
+  <form class="modal" id="diamond-form" style="width: 50%" onclick="event.stopPropagation()" onsubmit="submitDiamond(event)">
+    <div class="modal-head"><div class="modal-title" id="dia-modal-title">Add / edit diamond</div><button type="button" class="modal-close" onclick="closeModal('diamond')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="dia-id" />
+      <div class="form-group" style="margin-bottom:12px"><label class="form-label">Product Name</label><input id="dia-name" class="form-input" required /></div>
+      <div class="form-row"><div class="form-group" style="margin:0"><label class="form-label">Product ID (SKU)</label><input id="dia-sku" class="form-input" required /></div><div class="form-group" style="margin:0"><label class="form-label">Master Shape</label><input id="dia-master-shape" class="form-input" /></div></div>
+      <div class="form-row" style="margin-top:12px"><div class="form-group" style="margin:0"><label class="form-label">Master Color</label><input id="dia-master-color" class="form-input" /></div><div class="form-group" style="margin:0"><label class="form-label">Master Clarity</label><input id="dia-master-clarity" class="form-input" /></div></div>
+      <div class="form-row" style="margin-top:12px"><div class="form-group" style="margin:0"><label class="form-label">Master Carat / Size</label><input id="dia-master-carat" class="form-input" /></div><div class="form-group" style="margin:0"><label class="form-label">Certification</label><input id="dia-cert" class="form-input" /></div></div>
+      <p style="font-size:12px;font-weight:bold;margin-top:16px;margin-bottom:8px;color:#2c2c2a;border-bottom:0.5px solid #d3d1c7;padding-bottom:4px">Main Diamond Details</p>
+      <div class="form-row"><div class="form-group" style="margin:0"><label class="form-label">Weight</label><input id="dia-weight" step="0.01" type="number" class="form-input" /></div><div class="form-group" style="margin:0"><label class="form-label">Shape</label><input id="dia-shape" class="form-input" /></div></div>
+      <div class="form-row" style="margin-top:12px"><div class="form-group" style="margin:0"><label class="form-label">Color</label><input id="dia-color" class="form-input" /></div><div class="form-group" style="margin:0"><label class="form-label">Clarity</label><input id="dia-clarity" class="form-input" /></div></div>
+      <div class="form-row" style="margin-top:12px"><div class="form-group" style="margin:0"><label class="form-label">Cut</label><input id="dia-cut" class="form-input" /></div><div class="form-group" style="margin:0"><label class="form-label">Symmetry</label><input id="dia-sym" class="form-input" /></div></div>
+      <div class="form-row" style="margin-top:12px"><div class="form-group" style="margin:0"><label class="form-label">Polish</label><input id="dia-pol" class="form-input" /></div><div class="form-group" style="margin:0"><label class="form-label">Replacement Value</label><input id="dia-rep" step="0.01" type="number" class="form-input" /></div></div>
+      <p style="font-size:12px;font-weight:bold;margin-top:12px;color:#2c2c2a">Secondary Diamond</p>
+      <div class="form-row"><div class="form-group" style="margin:0"><label class="form-label">Weight</label><input id="dia-sec-weight" step="0.01" type="number" class="form-input" /></div><div class="form-group" style="margin:0"><label class="form-label">Color</label><input id="dia-sec-color" class="form-input" /></div></div>
+      <div class="form-row" style="margin-top:12px"><div class="form-group" style="margin:0"><label class="form-label">Clarity</label><input id="dia-sec-clarity" class="form-input" /></div></div>
+      <p style="font-size:12px;font-weight:bold;margin-top:12px;color:#2c2c2a">Metal Details</p>
+      <div class="form-row"><div class="form-group" style="margin:0"><label class="form-label">Type</label><input id="dia-met-type" class="form-input" /></div><div class="form-group" style="margin:0"><label class="form-label">Purity</label><input id="dia-met-purity" class="form-input" /></div></div>
+      <div class="form-row" style="margin-top:12px"><div class="form-group" style="margin:0"><label class="form-label">Color</label><input id="dia-met-color" class="form-input" /></div><div class="form-group" style="margin:0"><label class="form-label">Weight</label><input id="dia-met-weight" step="0.01" type="number" class="form-input" /></div></div>
+      <div class="form-group" style="margin-top:12px"><label class="form-label">Description</label><textarea id="dia-desc" class="form-input form-textarea" rows="2"></textarea></div>
+      <div class="form-group"><label class="form-label">Current Image</label>
+        <div id="dia-img-preview" style="display:none;margin-bottom:8px">
+          <img id="dia-current-img" src="" style="max-height:80px;border-radius:4px;border:1px solid #d3d1c7">
+        </div>
+        <input type="file" id="dia-img" class="form-input" />
+      </div>
+    </div>
+    <div class="modal-foot"><button type="button" class="btn" onclick="closeModal('diamond')">Cancel</button><button type="submit" class="btn btn-primary">Save diamond</button></div>
+  </form>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- JS LOGIC -->
+<script>
+// UI functions
+function openModal(id){ document.getElementById('modal-'+id).style.display='flex'; }
+function closeModal(id){ document.getElementById('modal-'+id).style.display='none'; }
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+// Pocketbase config
+const PB_URL = ''; // Now it works automatically on localhost:8090 AND api.embracerefreshingandcasting.com
+let token = localStorage.getItem('pb_token');
+let adminId = localStorage.getItem('pb_admin_id');
+
+const pbFetch = async (path, options = {}) => {
+  const headers = { ...options.headers };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  
+  if (!(options.body instanceof FormData) && options.body && typeof options.body === 'object') {
+    headers['Content-Type'] = 'application/json';
+    options.body = JSON.stringify(options.body);
+  }
+  
+  try {
+    const res = await fetch(`${PB_URL}${path}`, { ...options, headers });
+    if (res.status === 401) { logout(); throw new Error('Session expired'); }
+    const isJson = res.headers.get('content-type')?.includes('application/json');
+    const data = isJson ? await res.json() : await res.text();
+    if (!res.ok) throw new Error(data.message || `Error ${res.status}`);
+    return data;
+  } catch (err) {
+    throw err;
+  }
+};
+
+const checkAuth = async () => {
+  if (!token) return showLogin();
+  try {
+    await pbFetch('/api/collections/_superusers/records?perPage=1').catch(e => pbFetch('/api/admins?perPage=1'));
+    document.getElementById('login-view').classList.add('hidden');
+    document.getElementById('app-view').classList.remove('hidden');
+    // Pre-load current user details
+    const res = await pbFetch(`/api/collections/_superusers/records/${adminId}`).catch(e=>({email: 'admin'}));
+    if(res.email) {
+      document.getElementById('admin-user-email').textContent = res.email;
+      document.getElementById('admin-user-initial').textContent = res.email.charAt(0).toUpperCase();
+    }
+    go('dashboard', document.querySelector('.nav-item.active'));
+  } catch(e) { showLogin(); }
+};
+
+const showLogin = () => {
+  document.getElementById('login-view').classList.remove('hidden');
+  document.getElementById('app-view').classList.add('hidden');
+};
+
+document.getElementById('login-form').onsubmit = async (e) => {
+  e.preventDefault();
+  document.getElementById('login-error').classList.add('hidden');
+  try {
+    let res;
+    try {
+      res = await pbFetch('/api/collections/_superusers/auth-with-password', {
+        method: 'POST', body: { identity: document.getElementById('email').value, password: document.getElementById('password').value }
+      });
+    } catch(err) {
+      if(err.message.includes("404")) {
+        res = await pbFetch('/api/admins/auth-with-password', {
+          method: 'POST', body: { identity: document.getElementById('email').value, password: document.getElementById('password').value }
+        });
+      } else throw err;
+    }
+    token = res.token;
+    adminId = res.record?.id || res.admin?.id;
+    localStorage.setItem('pb_token', token);
+    localStorage.setItem('pb_admin_id', adminId);
+    checkAuth();
+  } catch (err) {
+    document.getElementById('login-error').innerText = err.message;
+    document.getElementById('login-error').classList.remove('hidden');
+  }
+};
+
+const logout = () => {
+  token = null; adminId = null;
+  localStorage.removeItem('pb_token');
+  localStorage.removeItem('pb_admin_id');
+  showLogin();
+};
+
+// Navigation
+function go(page, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const titles={dashboard:'Dashboard',categories:'Catalog — categories',diamonds:'Catalog — diamonds',media:'Media library',users:'User management',auditlog:'Audit log',settings:'Settings',profile:'My profile'};
+  document.getElementById('ptitle').textContent=titles[page]||page;
+
+  loadPageData(page);
+}
+
+// Transform catalog data (camelCase -> snake_case) and parse numbers
+const mapCatalogData = (data) => {
+  const parseNum = (val) => {
+    if (val === null || val === undefined || val === '') return 0;
+    if (typeof val === 'number') return val;
+    return parseFloat(val.toString().replace(/[^0-9.-]+/g,"")) || 0;
+  };
+  
+  return {
+    id: data.id || '',
+    product_id: data.productId || data.product_id || '',
+    name: data.name || '',
+    shape: data.shape || '',
+    color: data.color || '',
+    clarity: data.clarity || '',
+    carat: data.carat || '',
+    description: data.description || '',
+    main_diamond_shape: data.mainDiamondShape || data.main_diamond_shape || '',
+    main_diamond_weight: parseNum(data.mainDiamondWeight || data.main_diamond_weight),
+    main_diamond_clarity: data.mainDiamondClarity || data.main_diamond_clarity || '',
+    main_diamond_color: data.mainDiamondColor || data.main_diamond_color || '',
+    cut: data.cut || '',
+    symmetry: data.symmetry || '',
+    polish: data.polish || '',
+    secondary_diamond_weight: parseNum(data.secondaryDiamondWeight || data.secondary_diamond_weight),
+    secondary_diamond_clarity: data.secondaryDiamondClarity || data.secondary_diamond_clarity || '',
+    secondary_diamond_color: data.secondaryDiamondColor || data.secondary_diamond_color || '',
+    metal_type: data.metalType || data.metal_type || '',
+    metal_purity: data.metalPurity || data.metal_purity || '',
+    metal_color: data.metalColor || data.metal_color || '',
+    metal_weight: parseNum(data.metalWeight || data.metal_weight),
+    replacement_value: parseNum(data.replacementValue || data.replacement_value),
+    certification: data.certification || '',
+    image: data.image || ''
+  };
+};
+
+// Data loaders
+async function loadPageData(page) {
+    if (page === 'dashboard') {
+        const [prodRes, catRes, logRes] = await Promise.all([
+            pbFetch('/api/collections/products/records?perPage=5&sort=-created'),
+            pbFetch('/api/collections/categories/records?perPage=1'),
+            pbFetch('/api/collections/logs/records?perPage=5&sort=-created')
+        ]);
+        document.getElementById('dash-dia').textContent = prodRes.totalItems || 0;
+        document.getElementById('dash-cat').textContent = catRes.totalItems || 0;
+        document.getElementById('dash-log').textContent = logRes.totalItems || 0;
+
+        let logsHtml = '';
+        if(logRes.items.length) {
+            logRes.items.forEach(l => {
+                logsHtml += `<div class="log-row"><div class="log-dot" style="background:#534AB7"></div><div class="log-time">${l.created.substring(0,10)}</div><div><b>${l.admin_email}</b> ${l.action} <b>${l.target}</b></div></div>`;
+            });
+        } else {
+            logsHtml = `<div style="padding:12px;font-size:12px;color:#888780">No recent activity.</div>`;
+        }
+        document.getElementById('dash-recent-logs').innerHTML = logsHtml;
+    } 
+    else if (page === 'categories') {
+        document.getElementById('tbody-categories').innerHTML = '<tr><td colspan="5" style="text-align:center">Loading...</td></tr>';
+        const res = await pbFetch('/api/collections/categories/records?sort=-created');
+        let html = '';
+        res.items.forEach(c => {
+            html += `<tr>
+                <td style="font-weight:500">${c.name}</td>
+                <td>${c.type}</td>
+                <td><span class="badge ${c.status==='active'?'badge-g':'badge-y'}">${c.status||'draft'}</span></td>
+                <td>${c.description}</td>
+                <td><div class="actions"><button class="btn btn-sm" onclick='editCat(${JSON.stringify(c).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-sm btn-danger" onclick="deleteRecord('categories','${c.id}')">Del</button></div></td>
+            </tr>`;
+        });
+        document.getElementById('tbody-categories').innerHTML = html || '<tr><td colspan="5" style="text-align:center">No categories found.</td></tr>';
+    }
+    else if (page === 'diamonds') {
+        document.getElementById('tbody-diamonds').innerHTML = '<tr><td colspan="5" style="text-align:center">Loading...</td></tr>';
+        const res = await pbFetch('/api/collections/products/records?sort=-created');
+        let html = '';
+        res.items.forEach(rawP => {
+            const p = mapCatalogData(rawP);
+            html += `<tr>
+                <td style="font-family:monospace;font-size:11px;color:#888780">${p.product_id}</td>
+                <td style="font-weight:500">${p.name || p.description}</td>
+                <td>${p.shape || p.main_diamond_shape}</td>
+                <td>${p.main_diamond_weight}</td>
+                <td><div class="actions"><button class="btn btn-sm" onclick='editDiamond(${JSON.stringify(rawP).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-sm btn-danger" onclick="deleteRecord('products','${p.id}')">Del</button></div></td>
+            </tr>`;
+        });
+        document.getElementById('tbody-diamonds').innerHTML = html || '<tr><td colspan="5" style="text-align:center">No products found.</td></tr>';
+    } 
+    else if (page === 'media') {
+        const res = await pbFetch('/api/collections/products/records?filter=(image!="")');
+        let html = '';
+        res.items.forEach(item => {
+            if(item.image) {
+                html += `<div class="media-item">
+                <img src="${PB_URL}/api/files/products/${item.id}/${item.image}?thumb=200x200" onclick="window.open('${PB_URL}/api/files/products/${item.id}/${item.image}')">
+                </div>`;
+            }
+        });
+        document.getElementById('grid-media').innerHTML = html || '<div style="font-size:12px;color:#888780">No media uploaded.</div>';
+    }
+    else if (page === 'users') {
+        const res = await pbFetch('/api/collections/_superusers/records');
+        let html = '';
+        res.items.forEach(u => {
+            html += `<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="user-avatar">${u.email.charAt(0).toUpperCase()}</div><div style="font-size:12px;font-weight:500">${u.email}</div></div></td><td>${u.created.substring(0,10)}</td><td><span class="role-pill role-admin">Admin</span></td></tr>`;
+        });
+        document.getElementById('tbody-users').innerHTML = html;
+    }
+    else if (page === 'auditlog') {
+        const res = await pbFetch('/api/collections/logs/records?sort=-created&perPage=50');
+        let html = '';
+        res.items.forEach(l => {
+            html += `<div class="log-row"><div class="log-dot" style="background:#534AB7"></div><div class="log-time">${l.created}</div><div><b>${l.admin_email}</b> ${l.action} target <b>${l.target}</b></div></div>`;
+        });
+        document.getElementById('list-auditlog').innerHTML = html || '<div style="padding:16px;font-size:12px;color:#888780">No logs found.</div>';
+    }
+    else if (page === 'settings') {
+        const res = await pbFetch('/api/collections/settings/records');
+        let html = '';
+        res.items.forEach(s => {
+            html += `<div class="form-row" style="margin-bottom:8px">
+              <div class="form-group" style="margin:0"><label class="form-label">${s.key}</label><input class="form-input" id="setting-${s.id}" value="${s.value}"></div>
+              <div class="form-group" style="margin:0;display:flex;align-items:flex-end;"><button class="btn btn-sm" onclick="saveSetting('${s.id}')">Update</button></div>
+            </div>`;
+        });
+        document.getElementById('list-settings').innerHTML = html || '<div style="font-size:12px;color:#888780">No settings found.</div>';
+    }
+}
+
+// Global actions
+window.deleteRecord = async (collName, id) => {
+  if(!confirm('Are you sure you want to delete this record?')) return;
+  try {
+    await pbFetch(`/api/collections/${collName}/records/${id}`, { method: 'DELETE' });
+    showToast('Record deleted');
+    loadPageData(collName === 'products' ? 'diamonds' : collName);
+  } catch(err) { showToast('Error: ' + err.message); }
+};
+
+window.saveSetting = async (id) => {
+  const val = document.getElementById(`setting-${id}`).value;
+  try {
+    await pbFetch(`/api/collections/settings/records/${id}`, { method: 'PATCH', body: { value: val } });
+    showToast('Setting updated');
+  } catch(e) { showToast(e.message); }
+};
+
+window.saveProfile = async () => {
+    try {
+        const name = document.getElementById('prof-name').value;
+        const email = document.getElementById('prof-email').value;
+        let data = {};
+        if (name) data.name = name;
+        if (email) data.email = email;
+        await pbFetch(`/api/collections/_superusers/records/${adminId}`, { method: 'PATCH', body: data });
+        showToast('Profile updated!');
+    } catch(e) { showToast('Error: ' + e.message); }
+};
+
+window.savePassword = async () => {
+    try {
+        const oldPwd = document.getElementById('old-pwd').value;
+        const newPwd = document.getElementById('new-pwd').value;
+        const confirmPwd = document.getElementById('new-pwd-confirm').value;
+        if (newPwd !== confirmPwd) throw new Error("Passwords do not match");
+        await pbFetch(`/api/collections/_superusers/records/${adminId}`, { 
+            method: 'PATCH', body: { oldPassword: oldPwd, password: newPwd, passwordConfirm: confirmPwd } 
+        });
+        showToast('Password changed!');
+    } catch(e) { showToast('Error: ' + e.message); }
+};
+
+// Modals Setup
+window.openCatModal = () => {
+    document.getElementById('cat-id').value = '';
+    document.getElementById('cat-name').value = '';
+    document.getElementById('cat-desc').value = '';
+    document.getElementById('cat-type').value = 'Diamond';
+    document.getElementById('cat-status').value = 'active';
+    document.getElementById('cat-img-preview').style.display = 'none';
+    document.getElementById('cat-modal-title').innerText = 'Add Category';
+    openModal('cat');
+};
+window.editCat = (c) => {
+    document.getElementById('cat-id').value = c.id;
+    document.getElementById('cat-name').value = c.name || '';
+    document.getElementById('cat-desc').value = c.description || '';
+    document.getElementById('cat-type').value = c.type || 'Diamond';
+    document.getElementById('cat-status').value = c.status || 'active';
+    if(c.image) {
+        document.getElementById('cat-current-img').src = `${PB_URL}/api/files/categories/${c.id}/${c.image}?thumb=100x100`;
+        document.getElementById('cat-img-preview').style.display = 'block';
+    } else { document.getElementById('cat-img-preview').style.display = 'none'; }
+    document.getElementById('cat-modal-title').innerText = 'Edit Category';
+    openModal('cat');
+};
+window.submitCategory = async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('cat-id').value;
+    const formData = new FormData();
+    formData.append('name', document.getElementById('cat-name').value);
+    formData.append('description', document.getElementById('cat-desc').value);
+    formData.append('type', document.getElementById('cat-type').value);
+    formData.append('status', document.getElementById('cat-status').value);
+    const file = document.getElementById('cat-img').files[0];
+    if(file) formData.append('image', file);
+    
+    try {
+        const url = id ? `/api/collections/categories/records/${id}` : `/api/collections/categories/records`;
+        const method = id ? 'PATCH' : 'POST';
+        await pbFetch(url, { method, body: formData });
+        showToast('Category saved');
+        closeModal('cat');
+        loadPageData('categories');
+    } catch (err) { showToast('Error: ' + err.message); }
+};
+
+window.openDiamondModal = () => {
+    document.getElementById('dia-id').value = '';
+    document.getElementById('dia-name').value = '';
+    document.getElementById('dia-sku').value = '';
+    document.getElementById('dia-master-shape').value = '';
+    document.getElementById('dia-master-color').value = '';
+    document.getElementById('dia-master-clarity').value = '';
+    document.getElementById('dia-master-carat').value = '';
+    document.getElementById('dia-weight').value = '';
+    document.getElementById('dia-shape').value = '';
+    document.getElementById('dia-cert').value = '';
+    document.getElementById('dia-color').value = '';
+    document.getElementById('dia-clarity').value = '';
+    document.getElementById('dia-cut').value = '';
+    document.getElementById('dia-sym').value = '';
+    document.getElementById('dia-pol').value = '';
+    document.getElementById('dia-rep').value = '';
+    document.getElementById('dia-sec-weight').value = '';
+    document.getElementById('dia-sec-color').value = '';
+    document.getElementById('dia-sec-clarity').value = '';
+    document.getElementById('dia-met-type').value = '';
+    document.getElementById('dia-met-purity').value = '';
+    document.getElementById('dia-met-color').value = '';
+    document.getElementById('dia-met-weight').value = '';
+    document.getElementById('dia-desc').value = '';
+    document.getElementById('dia-img-preview').style.display = 'none';
+    document.getElementById('dia-modal-title').innerText = 'Add Diamond';
+    openModal('diamond');
+};
+window.editDiamond = (rawP) => {
+    const p = mapCatalogData(rawP);
+    document.getElementById('dia-id').value = p.id;
+    document.getElementById('dia-name').value = p.name;
+    document.getElementById('dia-sku').value = p.product_id;
+    document.getElementById('dia-master-shape').value = p.shape;
+    document.getElementById('dia-master-color').value = p.color;
+    document.getElementById('dia-master-clarity').value = p.clarity;
+    document.getElementById('dia-master-carat').value = p.carat;
+    document.getElementById('dia-weight').value = p.main_diamond_weight;
+    document.getElementById('dia-shape').value = p.main_diamond_shape;
+    document.getElementById('dia-cert').value = p.certification;
+    document.getElementById('dia-color').value = p.main_diamond_color;
+    document.getElementById('dia-clarity').value = p.main_diamond_clarity;
+    document.getElementById('dia-cut').value = p.cut;
+    document.getElementById('dia-sym').value = p.symmetry;
+    document.getElementById('dia-pol').value = p.polish;
+    document.getElementById('dia-rep').value = p.replacement_value;
+    document.getElementById('dia-sec-weight').value = p.secondary_diamond_weight;
+    document.getElementById('dia-sec-color').value = p.secondary_diamond_color;
+    document.getElementById('dia-sec-clarity').value = p.secondary_diamond_clarity;
+    document.getElementById('dia-met-type').value = p.metal_type;
+    document.getElementById('dia-met-purity').value = p.metal_purity;
+    document.getElementById('dia-met-color').value = p.metal_color;
+    document.getElementById('dia-met-weight').value = p.metal_weight;
+    document.getElementById('dia-desc').value = p.description;
+    if(p.image) {
+        document.getElementById('dia-current-img').src = `${PB_URL}/api/files/products/${p.id}/${p.image}?thumb=100x100`;
+        document.getElementById('dia-img-preview').style.display = 'block';
+    } else { document.getElementById('dia-img-preview').style.display = 'none'; }
+    document.getElementById('dia-modal-title').innerText = 'Edit Diamond';
+    openModal('diamond');
+};
+window.submitDiamond = async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('dia-id').value;
+    
+    // Read raw data from form and map it
+    const rawData = {
+        name: document.getElementById('dia-name').value,
+        shape: document.getElementById('dia-master-shape').value,
+        color: document.getElementById('dia-master-color').value,
+        clarity: document.getElementById('dia-master-clarity').value,
+        carat: document.getElementById('dia-master-carat').value,
+        product_id: document.getElementById('dia-sku').value,
+        main_diamond_weight: document.getElementById('dia-weight').value,
+        main_diamond_shape: document.getElementById('dia-shape').value,
+        certification: document.getElementById('dia-cert').value,
+        main_diamond_color: document.getElementById('dia-color').value,
+        main_diamond_clarity: document.getElementById('dia-clarity').value,
+        cut: document.getElementById('dia-cut').value,
+        symmetry: document.getElementById('dia-sym').value,
+        polish: document.getElementById('dia-pol').value,
+        replacement_value: document.getElementById('dia-rep').value,
+        secondary_diamond_weight: document.getElementById('dia-sec-weight').value,
+        secondary_diamond_color: document.getElementById('dia-sec-color').value,
+        secondary_diamond_clarity: document.getElementById('dia-sec-clarity').value,
+        metal_type: document.getElementById('dia-met-type').value,
+        metal_purity: document.getElementById('dia-met-purity').value,
+        metal_color: document.getElementById('dia-met-color').value,
+        metal_weight: document.getElementById('dia-met-weight').value,
+        description: document.getElementById('dia-desc').value
+    };
+    
+    const mapped = mapCatalogData(rawData);
+
+    const formData = new FormData();
+    formData.append('name', mapped.name);
+    formData.append('shape', mapped.shape);
+    formData.append('color', mapped.color);
+    formData.append('clarity', mapped.clarity);
+    formData.append('carat', mapped.carat);
+    formData.append('product_id', mapped.product_id);
+    formData.append('main_diamond_weight', mapped.main_diamond_weight);
+    formData.append('main_diamond_shape', mapped.main_diamond_shape);
+    formData.append('certification', mapped.certification);
+    formData.append('main_diamond_color', mapped.main_diamond_color);
+    formData.append('main_diamond_clarity', mapped.main_diamond_clarity);
+    formData.append('cut', mapped.cut);
+    formData.append('symmetry', mapped.symmetry);
+    formData.append('polish', mapped.polish);
+    formData.append('replacement_value', mapped.replacement_value);
+    formData.append('secondary_diamond_weight', mapped.secondary_diamond_weight);
+    formData.append('secondary_diamond_color', mapped.secondary_diamond_color);
+    formData.append('secondary_diamond_clarity', mapped.secondary_diamond_clarity);
+    formData.append('metal_type', mapped.metal_type);
+    formData.append('metal_purity', mapped.metal_purity);
+    formData.append('metal_color', mapped.metal_color);
+    formData.append('metal_weight', mapped.metal_weight);
+    formData.append('description', mapped.description);
+    const file = document.getElementById('dia-img').files[0];
+    if(file) formData.append('image', file);
+    
+    try {
+        const url = id ? `/api/collections/products/records/${id}` : `/api/collections/products/records`;
+        const method = id ? 'PATCH' : 'POST';
+        await pbFetch(url, { method, body: formData });
+        showToast('Diamond saved');
+        closeModal('diamond');
+        loadPageData('diamonds');
+    } catch (err) { showToast('Error: ' + err.message); }
+};
+
+checkAuth();
+
+</script>
+</body>
+</html>
