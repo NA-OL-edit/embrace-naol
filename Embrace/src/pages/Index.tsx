@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Gem, Flame, Shield, Award } from 'lucide-react';
 import { FadeUp, ScaleIn } from '@/components/AnimationWrappers';
 import HeroScene from '@/components/HeroScene';
-import heroBg from '@/assets/portfolio/custom/hero-bg.jpg';
-import portfolio1 from '@/assets/portfolio/raw/Custom Eritrea Map Pendant with Diamond Accents.jpg';
-import portfolio2 from '@/assets/portfolio/raw/H-Link Diamond Wedding & Engagement Set.png';
-import portfolio3 from '@/assets/portfolio/raw/High-Polish Yellow Gold Cuban Link Stack.png';
+import heroBg from '@/assets/portfolio/custom/hero-bg.png';
+import portfolio1 from '@/assets/portfolio/raw/custom-eritrea-map-pendant-with-diamond-accents.jpg';
+import portfolio2 from '@/assets/portfolio/raw/h-link-diamond-wedding-and-engagement-set.png';
+import portfolio3 from '@/assets/portfolio/raw/high-polish-yellow-gold-cuban-link-stack.png';
 
 const stats = [
   { value: '99.99%', label: 'Purity Guaranteed' },
