@@ -13,17 +13,9 @@ const About = lazy(() => import("./pages/About"));
 const Services = lazy(() => import("./pages/Services"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
 const Contact = lazy(() => import("./pages/Contact"));
-const Admin = lazy(() => import("./pages/Admin"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
-
-const AdminRedirect = () => {
-  if (typeof window !== "undefined") {
-    window.location.href = "/admin-panel.html";
-  }
-  return null;
-};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -44,7 +36,7 @@ const App = () => (
               <Route path="/services" element={<Services />} />
               <Route path="/portfolio" element={<Portfolio />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/admin" element={<AdminRedirect />} />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
