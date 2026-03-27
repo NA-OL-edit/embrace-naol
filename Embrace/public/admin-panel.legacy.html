@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Embrace Admin</title>
+<title>Embrace Jewelry — Admin</title>
 <style>
+/* New UI Styles */
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}
 body{background:#f5f5f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
 .shell{display:flex;height:95vh;width:100%;max-width:1400px;border:0.5px solid #d3d1c7;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.08)}
@@ -29,7 +30,7 @@ body{background:#f5f5f0;min-height:100vh;display:flex;align-items:center;justify
 .btn-danger{color:#e24b4a;border-color:rgba(226,75,74,.3)}
 .btn-danger:hover{background:rgba(226,75,74,.08)}
 .btn-sm{padding:3px 9px;font-size:11px}
-.content{flex:1;overflow-y:auto;padding:16px;}
+.content{flex:1;overflow-y:auto;padding:16px}
 .page{display:none}
 .page.active{display:block}
 .stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
@@ -94,7 +95,7 @@ tr:hover td{background:#f1efe8}
 .toggle::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .2s}
 .toggle.on::after{transform:translateX(12px)}
 
-/* Login added styles */
+/* Login added styles (Preserved) */
 #login-view { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; position: absolute; top:0; left:0; background: #f5f5f0; z-index: 1000; }
 .login-box { background: #fff; padding: 30px; border-radius: 12px; border: 1px solid #d3d1c7; width: 340px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
 .login-box h2 { font-size: 18px; font-weight: 500; margin-bottom: 20px; color: #2c2c2a; }
@@ -103,7 +104,7 @@ tr:hover td{background:#f1efe8}
 </head>
 <body>
 
-<!-- Login View -->
+<!-- Login View (Preserved) -->
 <div id="login-view">
   <div class="login-box">
     <h2>Admin Login</h2>
@@ -150,17 +151,19 @@ tr:hover td{background:#f1efe8}
       <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
         <div class="stat-grid">
-          <div class="stat"><div class="stat-l">Categories</div><div class="stat-v" id="dash-cat">0</div><div class="badge badge-g">Active</div></div>
           <div class="stat"><div class="stat-l">Diamonds</div><div class="stat-v" id="dash-dia">0</div><div class="badge badge-g">Live</div></div>
-          <div class="stat"><div class="stat-l">Total Logs</div><div class="stat-v" id="dash-log">0</div><div class="badge badge-b">System</div></div>
-          <div class="stat"><div class="stat-l">Pending</div><div class="stat-v">0</div><div class="badge badge-y">Review</div></div>
+          <div class="stat"><div class="stat-l">Categories</div><div class="stat-v" id="dash-cat">0</div><div class="badge badge-g">Active</div></div>
+          <div class="stat"><div class="stat-l">Audit logs</div><div class="stat-v" id="dash-log">0</div><div class="badge badge-b">Total</div></div>
+          <div class="stat"><div class="stat-l">Connection</div><div class="stat-v" style="color:#2db464; font-size:16px;">Online</div><div class="badge badge-g">PocketBase</div></div>
         </div>
         <div class="card">
-          <div class="card-head"><div class="card-title">Recent activity</div></div>
-          <div id="dash-recent-logs">
-            <!-- recent logs here -->
-            <div style="padding:12px; font-size:12px; color:#888780">Loading logs...</div>
-          </div>
+          <div class="card-head"><div class="card-title">Recent diamonds</div><button class="btn btn-primary btn-sm" onclick="go('diamonds',document.querySelector('[onclick*=diamonds]'))">View all</button></div>
+          <table>
+            <thead><tr><th style="width:100px">ID</th><th>Description</th><th style="width:150px">Shape</th><th style="width:120px">Certification</th></tr></thead>
+            <tbody id="dash-recent-diamonds">
+              <tr><td colspan="4" style="text-align:center">Loading diamonds...</td></tr>
+            </tbody>
+          </table>
         </div>
         <div class="card">
           <div class="card-head"><div class="card-title">Quick actions</div></div>
@@ -183,7 +186,7 @@ tr:hover td{background:#f1efe8}
             </div>
           </div>
           <table>
-            <thead><tr><th style="width:200px">Name</th><th style="width:120px">Type</th><th>Status</th><th>Desc</th><th style="width:120px">Actions</th></tr></thead>
+            <thead><tr><th style="width:200px">Name</th><th style="width:120px">Type</th><th style="width:100px">Status</th><th>Desc</th><th style="width:120px">Actions</th></tr></thead>
             <tbody id="tbody-categories">
               <!-- populated by JS -->
             </tbody>
@@ -202,7 +205,7 @@ tr:hover td{background:#f1efe8}
             </div>
           </div>
           <table>
-            <thead><tr><th style="width:80px">ID</th><th>Description</th><th style="width:100px">Shape</th><th style="width:80px">Weight</th><th>Actions</th></tr></thead>
+            <thead><tr><th style="width:100px">ID</th><th style="width:160px">Shape</th><th style="width:80px">Weight</th><th style="width:100px">Clarity</th><th style="width:120px">Color</th><th style="width:80px">Cut</th><th style="width:100px">Metal</th><th style="width:80px">Cert</th><th style="width:60px">Image</th><th>Actions</th></tr></thead>
             <tbody id="tbody-diamonds">
                <!-- populated by JS -->
             </tbody>
@@ -317,16 +320,16 @@ tr:hover td{background:#f1efe8}
   </form>
 </div>
 
-<!-- Diamond (Product) Modal -->
+<!-- Diamond Modal -->
 <div id="modal-diamond" class="modal-wrap" style="display:none" onclick="closeModal('diamond')">
   <form class="modal" id="diamond-form" style="width: 50%" onclick="event.stopPropagation()" onsubmit="submitDiamond(event)">
     <div class="modal-head"><div class="modal-title" id="dia-modal-title">Add / edit diamond</div><button type="button" class="modal-close" onclick="closeModal('diamond')">×</button></div>
     <div class="modal-body">
       <input type="hidden" id="dia-id" />
       <div class="form-group" style="margin-bottom:12px"><label class="form-label">Product Name</label><input id="dia-name" class="form-input" required /></div>
-      <div class="form-row"><div class="form-group" style="margin:0"><label class="form-label">Product ID (SKU)</label><input id="dia-sku" class="form-input" required /></div><div class="form-group" style="margin:0"><label class="form-label">Master Shape</label><input id="dia-master-shape" class="form-input" /></div></div>
+      <div class="form-row"><div class="form-group" style="margin:0"><label class="form-label">SKU</label><input id="dia-sku" class="form-input" required /></div><div class="form-group" style="margin:0"><label class="form-label">Master Shape</label><input id="dia-master-shape" class="form-input" /></div></div>
       <div class="form-row" style="margin-top:12px"><div class="form-group" style="margin:0"><label class="form-label">Master Color</label><input id="dia-master-color" class="form-input" /></div><div class="form-group" style="margin:0"><label class="form-label">Master Clarity</label><input id="dia-master-clarity" class="form-input" /></div></div>
-      <div class="form-row" style="margin-top:12px"><div class="form-group" style="margin:0"><label class="form-label">Master Carat / Size</label><input id="dia-master-carat" class="form-input" /></div><div class="form-group" style="margin:0"><label class="form-label">Certification</label><input id="dia-cert" class="form-input" /></div></div>
+      <div class="form-row" style="margin-top:12px"><div class="form-group" style="margin:0"><label class="form-label">Master Carat</label><input id="dia-master-carat" class="form-input" /></div><div class="form-group" style="margin:0"><label class="form-label">Certification</label><input id="dia-cert" class="form-input" /></div></div>
       <p style="font-size:12px;font-weight:bold;margin-top:16px;margin-bottom:8px;color:#2c2c2a;border-bottom:0.5px solid #d3d1c7;padding-bottom:4px">Main Diamond Details</p>
       <div class="form-row"><div class="form-group" style="margin:0"><label class="form-label">Weight</label><input id="dia-weight" step="0.01" type="number" class="form-input" /></div><div class="form-group" style="margin:0"><label class="form-label">Shape</label><input id="dia-shape" class="form-input" /></div></div>
       <div class="form-row" style="margin-top:12px"><div class="form-group" style="margin:0"><label class="form-label">Color</label><input id="dia-color" class="form-input" /></div><div class="form-group" style="margin:0"><label class="form-label">Clarity</label><input id="dia-clarity" class="form-input" /></div></div>
@@ -352,7 +355,7 @@ tr:hover td{background:#f1efe8}
 
 <div class="toast" id="toast"></div>
 
-<!-- JS LOGIC -->
+<!-- JS LOGIC (Preserved from original) -->
 <script>
 // UI functions
 function openModal(id){ document.getElementById('modal-'+id).style.display='flex'; }
@@ -365,19 +368,19 @@ function showToast(msg){
   toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
 }
 // Pocketbase config
-const PB_URL = ''; // Now it works automatically on localhost:8090 AND api.embracerefreshingandcasting.com
-let token = localStorage.getItem('pb_token');
-let adminId = localStorage.getItem('pb_admin_id');
+const PB_URL = ''; 
+localStorage.removeItem('pb_token');
+localStorage.removeItem('pb_admin_id');
+let token = null;
+let adminId = null;
 
 const pbFetch = async (path, options = {}) => {
   const headers = { ...options.headers };
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  
   if (!(options.body instanceof FormData) && options.body && typeof options.body === 'object') {
     headers['Content-Type'] = 'application/json';
     options.body = JSON.stringify(options.body);
   }
-  
   try {
     const res = await fetch(`${PB_URL}${path}`, { ...options, headers });
     if (res.status === 401) { logout(); throw new Error('Session expired'); }
@@ -385,9 +388,7 @@ const pbFetch = async (path, options = {}) => {
     const data = isJson ? await res.json() : await res.text();
     if (!res.ok) throw new Error(data.message || `Error ${res.status}`);
     return data;
-  } catch (err) {
-    throw err;
-  }
+  } catch (err) { throw err; }
 };
 
 const checkAuth = async () => {
@@ -396,7 +397,6 @@ const checkAuth = async () => {
     await pbFetch('/api/collections/_superusers/records?perPage=1').catch(e => pbFetch('/api/admins?perPage=1'));
     document.getElementById('login-view').classList.add('hidden');
     document.getElementById('app-view').classList.remove('hidden');
-    // Pre-load current user details
     const res = await pbFetch(`/api/collections/_superusers/records/${adminId}`).catch(e=>({email: 'admin'}));
     if(res.email) {
       document.getElementById('admin-user-email').textContent = res.email;
@@ -421,11 +421,9 @@ document.getElementById('login-form').onsubmit = async (e) => {
         method: 'POST', body: { identity: document.getElementById('email').value, password: document.getElementById('password').value }
       });
     } catch(err) {
-      if(err.message.includes("404")) {
         res = await pbFetch('/api/admins/auth-with-password', {
           method: 'POST', body: { identity: document.getElementById('email').value, password: document.getElementById('password').value }
         });
-      } else throw err;
     }
     token = res.token;
     adminId = res.record?.id || res.admin?.id;
@@ -445,7 +443,6 @@ const logout = () => {
   showLogin();
 };
 
-// Navigation
 function go(page, el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
@@ -453,18 +450,15 @@ function go(page, el){
   if(el) el.classList.add('active');
   const titles={dashboard:'Dashboard',categories:'Catalog — categories',diamonds:'Catalog — diamonds',media:'Media library',users:'User management',auditlog:'Audit log',settings:'Settings',profile:'My profile'};
   document.getElementById('ptitle').textContent=titles[page]||page;
-
   loadPageData(page);
 }
 
-// Transform catalog data (camelCase -> snake_case) and parse numbers
 const mapCatalogData = (data) => {
   const parseNum = (val) => {
     if (val === null || val === undefined || val === '') return 0;
     if (typeof val === 'number') return val;
     return parseFloat(val.toString().replace(/[^0-9.-]+/g,"")) || 0;
   };
-  
   return {
     id: data.id || '',
     product_id: data.productId || data.product_id || '',
@@ -494,27 +488,31 @@ const mapCatalogData = (data) => {
   };
 };
 
-// Data loaders
 async function loadPageData(page) {
     if (page === 'dashboard') {
         const [prodRes, catRes, logRes] = await Promise.all([
             pbFetch('/api/collections/products/records?perPage=5&sort=-created'),
             pbFetch('/api/collections/categories/records?perPage=1'),
-            pbFetch('/api/collections/logs/records?perPage=5&sort=-created')
+            pbFetch('/api/collections/logs/records?perPage=1')
         ]);
         document.getElementById('dash-dia').textContent = prodRes.totalItems || 0;
         document.getElementById('dash-cat').textContent = catRes.totalItems || 0;
         document.getElementById('dash-log').textContent = logRes.totalItems || 0;
-
-        let logsHtml = '';
-        if(logRes.items.length) {
-            logRes.items.forEach(l => {
-                logsHtml += `<div class="log-row"><div class="log-dot" style="background:#534AB7"></div><div class="log-time">${l.created.substring(0,10)}</div><div><b>${l.admin_email}</b> ${l.action} <b>${l.target}</b></div></div>`;
+        let phtml = '';
+        if(prodRes.items.length) {
+            prodRes.items.forEach(rawP => {
+                const p = mapCatalogData(rawP);
+                phtml += `<tr>
+                  <td style="font-family:monospace;font-size:11px;color:#888780">${p.product_id}</td>
+                  <td style="font-weight:500">${p.name || p.description}</td>
+                  <td>${p.shape || p.main_diamond_shape || '—'}</td>
+                  <td>${p.certification || '—'}</td>
+                </tr>`;
             });
         } else {
-            logsHtml = `<div style="padding:12px;font-size:12px;color:#888780">No recent activity.</div>`;
+            phtml = `<tr><td colspan="4" style="text-align:center">No recent diamonds.</td></tr>`;
         }
-        document.getElementById('dash-recent-logs').innerHTML = logsHtml;
+        document.getElementById('dash-recent-diamonds').innerHTML = phtml;
     } 
     else if (page === 'categories') {
         document.getElementById('tbody-categories').innerHTML = '<tr><td colspan="5" style="text-align:center">Loading...</td></tr>';
@@ -532,23 +530,29 @@ async function loadPageData(page) {
         document.getElementById('tbody-categories').innerHTML = html || '<tr><td colspan="5" style="text-align:center">No categories found.</td></tr>';
     }
     else if (page === 'diamonds') {
-        document.getElementById('tbody-diamonds').innerHTML = '<tr><td colspan="5" style="text-align:center">Loading...</td></tr>';
-        const res = await pbFetch('/api/collections/products/records?sort=-created');
+        document.getElementById('tbody-diamonds').innerHTML = '<tr><td colspan="10" style="text-align:center">Loading...</td></tr>';
+        const res = await pbFetch('/api/collections/products/records?perPage=200&sort=-created');
         let html = '';
         res.items.forEach(rawP => {
             const p = mapCatalogData(rawP);
+            const descHtml = p.description ? `<div style="font-size:11px;color:#888780">${p.description.substring(0,35)}...</div>` : '';
             html += `<tr>
                 <td style="font-family:monospace;font-size:11px;color:#888780">${p.product_id}</td>
-                <td style="font-weight:500">${p.name || p.description}</td>
-                <td>${p.shape || p.main_diamond_shape}</td>
-                <td>${p.main_diamond_weight}</td>
+                <td><div style="font-weight:500">${p.shape || p.main_diamond_shape || '—'}</div>${descHtml}</td>
+                <td>${p.main_diamond_weight || '—'}</td>
+                <td>${p.main_diamond_clarity || '—'}</td>
+                <td>${p.main_diamond_color || '—'}</td>
+                <td>${p.cut || '—'}</td>
+                <td>${p.metal_type || '—'}</td>
+                <td>${p.certification || '—'}</td>
+                <td>${p.image ? `<img src="${PB_URL}/api/files/products/${p.id}/${p.image}?thumb=50x50" style="width:30px;height:30px;border-radius:4px;object-fit:cover;cursor:pointer" onclick="window.open('${PB_URL}/api/files/products/${p.id}/${p.image}')">` : '—'}</td>
                 <td><div class="actions"><button class="btn btn-sm" onclick='editDiamond(${JSON.stringify(rawP).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-sm btn-danger" onclick="deleteRecord('products','${p.id}')">Del</button></div></td>
             </tr>`;
         });
-        document.getElementById('tbody-diamonds').innerHTML = html || '<tr><td colspan="5" style="text-align:center">No products found.</td></tr>';
+        document.getElementById('tbody-diamonds').innerHTML = html || '<tr><td colspan="10" style="text-align:center">No products found.</td></tr>';
     } 
     else if (page === 'media') {
-        const res = await pbFetch('/api/collections/products/records?filter=(image!="")');
+        const res = await pbFetch('/api/collections/products/records?perPage=200&filter=(image!="")');
         let html = '';
         res.items.forEach(item => {
             if(item.image) {
@@ -588,7 +592,6 @@ async function loadPageData(page) {
     }
 }
 
-// Global actions
 window.deleteRecord = async (collName, id) => {
   if(!confirm('Are you sure you want to delete this record?')) return;
   try {
@@ -631,7 +634,6 @@ window.savePassword = async () => {
     } catch(e) { showToast('Error: ' + e.message); }
 };
 
-// Modals Setup
 window.openCatModal = () => {
     document.getElementById('cat-id').value = '';
     document.getElementById('cat-name').value = '';
@@ -665,7 +667,6 @@ window.submitCategory = async (e) => {
     formData.append('status', document.getElementById('cat-status').value);
     const file = document.getElementById('cat-img').files[0];
     if(file) formData.append('image', file);
-    
     try {
         const url = id ? `/api/collections/categories/records/${id}` : `/api/collections/categories/records`;
         const method = id ? 'PATCH' : 'POST';
@@ -741,8 +742,6 @@ window.editDiamond = (rawP) => {
 window.submitDiamond = async (e) => {
     e.preventDefault();
     const id = document.getElementById('dia-id').value;
-    
-    // Read raw data from form and map it
     const rawData = {
         name: document.getElementById('dia-name').value,
         shape: document.getElementById('dia-master-shape').value,
@@ -768,9 +767,7 @@ window.submitDiamond = async (e) => {
         metal_weight: document.getElementById('dia-met-weight').value,
         description: document.getElementById('dia-desc').value
     };
-    
     const mapped = mapCatalogData(rawData);
-
     const formData = new FormData();
     formData.append('name', mapped.name);
     formData.append('shape', mapped.shape);
@@ -797,7 +794,6 @@ window.submitDiamond = async (e) => {
     formData.append('description', mapped.description);
     const file = document.getElementById('dia-img').files[0];
     if(file) formData.append('image', file);
-    
     try {
         const url = id ? `/api/collections/products/records/${id}` : `/api/collections/products/records`;
         const method = id ? 'PATCH' : 'POST';
@@ -809,7 +805,6 @@ window.submitDiamond = async (e) => {
 };
 
 checkAuth();
-
 </script>
 </body>
 </html>

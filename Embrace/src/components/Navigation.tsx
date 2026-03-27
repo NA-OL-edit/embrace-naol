@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
+import { getSettingsMap } from '@/lib/pocketbase';
 
 const navItems = [
   { label: 'Home', path: '/' },
@@ -13,7 +14,16 @@ const navItems = [
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const [settings, setSettings] = useState<Record<string, string>>({});
   const location = useLocation();
+
+  useEffect(() => {
+    getSettingsMap().then(setSettings).catch(console.error);
+  }, []);
+
+  const siteName = (settings.site_name || 'Embrace').split(' ');
+  const mainName = siteName[0];
+  const subName = siteName.slice(1).join(' ') || 'Jewellery';
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50">
@@ -30,10 +40,10 @@ export default function Navigation() {
             />
             <div className="flex flex-col leading-tight">
               <span className="brand-embrace text-2xl font-semibold tracking-wider text-gold-gradient">
-                Embrace
+                {mainName}
               </span>
               <span className="hidden brand-jewellery text-xs font-light uppercase tracking-[0.3em] text-muted-foreground sm:block">
-                Jewellery
+                {subName}
               </span>
             </div>
           </Link>

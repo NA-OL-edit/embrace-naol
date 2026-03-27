@@ -1,13 +1,20 @@
 {
   "installCommand": "npm install",
   "buildCommand": "npm run build",
+  "redirects": [
+    {
+      "source": "/admin",
+      "destination": "/admin-panel.html",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!.*\\.html$).*)",
       "destination": "/index.html"
     }
   ]

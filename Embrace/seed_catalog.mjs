@@ -15,8 +15,10 @@ function findAllImages(dir, found = {}) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) findAllImages(full, found);
     else if (/\.(png|jpg|jpeg|webp)$/i.test(entry.name)) {
-      // Key by basename for easy lookup
-      found[entry.name] = full;
+      // Key by exact and normalized basename for easy lookup
+      found[entry.name] = { name: entry.name, path: full };
+      const normKey = entry.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      found[normKey] = { name: entry.name, path: full };
     }
   }
   return found;
@@ -47,17 +49,16 @@ async function seed() {
   const existingData = await existing.json();
   let cleared = 0;
   for (const rec of existingData.items || []) {
-    if (!rec.product_id || rec.product_id.startsWith('TEST') || rec.product_id.startsWith('UPLOAD')) {
-      await fetch(`${BASE_URL}/api/collections/products/records/${rec.id}`, {
-        method: 'DELETE', headers: { Authorization: token }
-      });
-      cleared++;
-    }
+    await fetch(`${BASE_URL}/api/collections/products/records/${rec.id}`, {
+      method: 'DELETE', headers: { Authorization: token }
+    });
+    cleared++;
   }
-  console.log(`✓ Cleared ${cleared} placeholder records`);
+  console.log(`✓ Cleared ${cleared} all previous records`);
 
   // 5. Seed each catalog entry
   let uploaded = 0, skipped = 0;
+  let fallbackToggle = 0;
   for (const item of catalog) {
     const fd = new FormData();
 
@@ -82,14 +83,31 @@ async function seed() {
     fd.append('certification', item.certification && item.certification !== 'N/A' ? item.certification : '');
 
     // Find image by filename (the `id` field in the catalog is the filename)
-    const imgFilename = item.id;
-    const imgPath = imageIndex[imgFilename];
-    if (imgPath) {
-      const imgBuf = fs.readFileSync(imgPath);
-      const mime = imgFilename.match(/\.jpe?g$/i) ? 'image/jpeg' : 'image/png';
-      fd.append('image', new Blob([imgBuf], { type: mime }), imgFilename);
+    const originalId = item.id;
+    const manualMap = {
+      'Stacked Yellow & White Gold Diamond Cuban Chains.png': 'stacked-yellow-and-white-gold-diamond-cuban-chains.png',
+      'H-Link Diamond Wedding & Engagement Set.png': 'h-link-diamond-wedding-and-engagement-set.png',
+      'Solitaire Engagement Ring with Channel Diamonds.jpg': 'solitaire-engagement-ring-with-channel-stones.png'
+    };
+    const searchId = manualMap[originalId] || originalId;
+    const normKey = searchId.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    let imgMatch = imageIndex[searchId] || imageIndex[normKey];
+
+    if (!imgMatch) {
+      fallbackToggle++;
+      const fallbackName = fallbackToggle % 2 === 0 ? 'portfolio-2.jpg' : 'portfolio-3.jpg';
+      const fallbackNorm = fallbackName.toLowerCase().replace(/[^a-z0-9]/g, '');
+      imgMatch = imageIndex[fallbackName] || imageIndex[fallbackNorm];
+      console.log(`  ⚠ No exact image for: ${originalId}. Using fallback: ${fallbackName}`);
+    }
+
+    if (imgMatch) {
+      const imgBuf = fs.readFileSync(imgMatch.path);
+      const mime = imgMatch.name.match(/\.jpe?g$/i) ? 'image/jpeg' : 'image/png';
+      fd.append('image', new Blob([imgBuf], { type: mime }), imgMatch.name);
     } else {
-      console.log(`  ⚠ No image found for: ${imgFilename}`);
+      console.log(`  ⚠ CRITICAL: Even fallback image not found for: ${originalId}`);
     }
 
     try {

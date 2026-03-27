@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { getSettingsMap } from '@/lib/pocketbase';
 
 const socialLinks = [
   { label: 'Facebook', href: 'https://facebook.com', icon: 'f' },
@@ -9,6 +11,16 @@ const socialLinks = [
 ];
 
 export default function Footer() {
+  const [settings, setSettings] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    getSettingsMap().then(setSettings).catch(console.error);
+  }, []);
+
+  const email = settings.contact_email || 'info@embracerefiningandcasting.com';
+  const phone = settings.contact_phone || '+256769947948, +251943814444, +251943794444';
+  const address = settings.contact_address || 'Addis Ababa, Ethiopia and Kampala, Uganda';
+
   return (
     <footer className="border-t border-border bg-card">
       <div className="mx-auto max-w-7xl px-6 py-16 md:px-12">
@@ -38,9 +50,9 @@ export default function Footer() {
           <div>
             <h4 className="font-display text-lg font-medium text-foreground">Contact</h4>
             <div className="mt-4 flex flex-col gap-2 font-body text-sm font-light text-muted-foreground">
-              <p>info@embracerefiningandcasting.com</p>
-              <p>+256769947948, +251943814444, +251943794444</p>
-              <p>Address: Addis Ababa, Ethiopia and Kampala, Uganda</p>
+              <p>{email}</p>
+              <p>{phone}</p>
+              <p>Address: {address}</p>
             </div>
           </div>
           <div>
