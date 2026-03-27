@@ -54,32 +54,34 @@ export default function Admin() {
   const loadData = async () => {
     setIsLoadingData(true);
     try {
-      const [mediaRes, productsRes, catsRes, usersRes, settingsRes] = await Promise.all([
+      const [mediaRes, productsRes, catsRes, usersRes, settingsRes, auditRes] = await Promise.allSettled([
         listMedia({ limit: 1 }),
         pb.collection('products').getList(1, 1),
         pb.collection('categories').getFullList<Category>(),
         pb.collection('users').getFullList(),
-        pb.collection('settings').getFirstListItem('')
+        pb.collection('settings').getFirstListItem(''),
+        pb.collection('audit_logs').getList(1, 10, { sort: '-created' })
       ]);
       
-      setCatalogCount(mediaRes.stats.total);
-      setCategories(catsRes);
-      setFilteredCats(catsRes);
-      setAllUsers(usersRes);
-      setSiteSettings(settingsRes);
-      
-      // Simulate/Generate some audit logs if empty
-      setAuditLogs([
-        { id: '1', event: 'LOGIN', user: 'naolediting7@gmail.com', details: 'Successful session start', time: '10 mins ago' },
-        { id: '2', event: 'UPDATE', user: 'system', details: 'Diamond collection sync successful', time: '1 hour ago' },
-        { id: '3', event: 'CONFIG', user: 'naolediting7@gmail.com', details: 'API Endpoint updated in lib', time: '3 hours ago' },
-      ]);
+      const mediaData = mediaRes.status === 'fulfilled' ? mediaRes.value : { stats: { total: 0 } };
+      const productsData = productsRes.status === 'fulfilled' ? productsRes.value : { totalItems: 0 };
+      const catsData = catsRes.status === 'fulfilled' ? catsRes.value : [];
+      const usersData = usersRes.status === 'fulfilled' ? usersRes.value : [];
+      const settingsData = settingsRes.status === 'fulfilled' ? settingsRes.value : siteSettings;
+      const auditData = auditRes.status === 'fulfilled' ? auditRes.value.items : [];
+
+      setCatalogCount(mediaData.stats.total);
+      setCategories(catsData);
+      setFilteredCats(catsData);
+      setAllUsers(usersData);
+      setSiteSettings(settingsData);
+      setAuditLogs(auditData);
 
       setStats({ 
-        media: mediaRes.stats.total,
-        diamonds: productsRes.totalItems,
-        categories: catsRes.length,
-        users: usersRes.length
+        media: mediaData.stats.total,
+        diamonds: productsData.totalItems,
+        categories: catsData.length,
+        users: usersData.length
       });
     } catch (err) {
       console.error("Failed to load dashboard data", err);
@@ -297,19 +299,30 @@ export default function Admin() {
               {currentPage === 'dashboard' && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <StatCard label="Categories" value={stats.categories} badge="Live" badgeType="gold" />
-                    <StatCard label="Diamonds" value={stats.diamonds} badge="Inventory" badgeType="gold" />
-                    <StatCard label="Media Assets" value={stats.media} badge="Cloud Store" badgeType="primary" />
-                    <StatCard label="Total Users" value={stats.users} badge="Active" badgeType="green" />
+                    <StatCard label="Categories" value={stats.categories} badge="Live" badgeType="gold" loading={isLoadingData} />
+                    <StatCard label="Diamonds" value={stats.diamonds} badge="Inventory" badgeType="gold" loading={isLoadingData} />
+                    <StatCard label="Media Assets" value={stats.media} badge="Cloud Store" badgeType="primary" loading={isLoadingData} />
+                    <StatCard label="Total Users" value={stats.users} badge="Active" badgeType="green" loading={isLoadingData} />
                   </div>
 
                   <div className="grid lg:grid-cols-2 gap-6">
                     <Card title="Activity Stream">
-                      <div className="p-1">
-                        <ActivityRow dotColor="hsl(var(--primary))" time="2m ago" text={<>Diamond catalog: <b>Aurora Solitaire</b> added</>} />
-                        <ActivityRow dotColor="#1D9E75" time="1h ago" text={<>Security: <b>admin</b> login session started</>} />
-                        <ActivityRow dotColor="#D85A30" time="3h ago" text={<>System: CDN cache invalidation complete</>} />
-                        <ActivityRow dotColor="#888780" time="1d ago" text={<>Maintenance: <b>Backup_240324</b> verified</>} />
+                      <div className="space-y-6">
+                        {auditLogs.length === 0 ? (
+                           <div className="py-8 text-center text-[#888780] text-[12px] border border-dashed border-primary/10 rounded-xl">
+                              No recent activity recorded.
+                           </div>
+                        ) : (
+                          auditLogs.map((log: any) => (
+                            <ActivityItem 
+                              key={log.id}
+                              icon="circle" 
+                              title={`${log.event}: ${log.details}`} 
+                              time={new Date(log.created).toLocaleTimeString()} 
+                              color={log.event === 'LOGIN' ? 'primary' : 'gold'} 
+                            />
+                          ))
+                        )}
                       </div>
                     </Card>
 
@@ -327,7 +340,7 @@ export default function Admin() {
 
               {currentPage === 'diamonds' && (
                 <div className="space-y-4">
-                  <AdminProductManager />
+                  <AdminProductManager onRefresh={loadData} />
                 </div>
               )}
 
@@ -614,6 +627,11 @@ export default function Admin() {
                 <div className="space-y-6">
                   <p className="text-[12px] text-[#888780]">Registered administrative and client accounts.</p>
                   <Card title="User Directory" extra={<button className="admin-btn-action py-1 px-4 text-[10px]" onClick={() => toast.info("User creation handled via PB")}>+ Create User</button>}>
+                    {isLoadingData ? (
+                       <div className="p-12 space-y-4">
+                          {[1,2,3].map(i => <div key={i} className="h-10 bg-white/5 animate-pulse rounded-xl" />)}
+                       </div>
+                    ) : (
                     <table className="w-full border-collapse">
                       <thead>
                         <tr className="bg-white/5 text-left border-b border-primary/10">
@@ -650,6 +668,7 @@ export default function Admin() {
                         )}
                       </tbody>
                     </table>
+                    )}
                   </Card>
                 </div>
               )}
@@ -722,12 +741,23 @@ export default function Admin() {
 
 // ── Sub-components for cleaner code ──────────────────────────
 
-function StatCard({ label, value, badge, badgeType }: { label: string; value: number | string; badge: string; badgeType: 'gold' | 'primary' | 'green' }) {
+function StatCard({ label, value, badge, badgeType, loading }: { label: string; value: number | string; badge: string; badgeType: 'gold' | 'primary' | 'green', loading?: boolean }) {
   const badgeStyles = {
     gold: 'bg-primary/10 text-primary border border-primary/20',
     primary: 'bg-[#534AB7]/10 text-[#534AB7] border border-[#534AB7]/20',
     green: 'bg-[#1D9E75]/10 text-[#1D9E75] border border-[#1D9E75]/20'
   };
+
+  if (loading) {
+     return (
+        <div className="bg-black/30 p-5 rounded-2xl border border-primary/10 animate-pulse">
+           <div className="h-3 w-16 bg-white/10 rounded mb-4" />
+           <div className="h-8 w-12 bg-white/20 rounded mb-4" />
+           <div className="h-4 w-14 bg-white/5 rounded" />
+        </div>
+     );
+  }
+
   return (
     <div className="bg-black/30 p-5 rounded-2xl border border-primary/10 hover:border-primary/30 transition-all group overflow-hidden relative">
       <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-primary/5 rounded-full group-hover:scale-150 transition-transform duration-700" />

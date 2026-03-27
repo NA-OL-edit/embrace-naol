@@ -103,7 +103,7 @@ const Field = ({
 );
 
 // ═══════════════════════════════════════════════════════════════
-export default function AdminProductManager() {
+export default function AdminProductManager({ onRefresh }: { onRefresh?: () => void }) {
   const [mode, setMode]             = useState<ViewMode>('default');
   const [products, setProducts]     = useState<Product[]>([]);
   const [search, setSearch]         = useState('');
@@ -164,6 +164,7 @@ export default function AdminProductManager() {
       toast.success('Product added successfully!');
       resetAll();
       void loadProducts();
+      if (onRefresh) onRefresh();
     } catch (err: any) {
       toast.error(err?.message ?? 'Failed to add product.');
     } finally { setLoading(false); }
@@ -181,6 +182,7 @@ export default function AdminProductManager() {
       setEditingId(null); setEditingProd(null); setForm(blank);
       setImageFile(null); setPreview(null);
       void loadProducts();
+      if (onRefresh) onRefresh();
     } catch (err: any) {
       toast.error(err?.message ?? 'Failed to save changes.');
     } finally { setLoading(false); }
@@ -194,6 +196,7 @@ export default function AdminProductManager() {
       await deleteProduct(id);
       toast.success('Product deleted.');
       await loadProducts();
+      if (onRefresh) onRefresh();
       setMode('edit-search');
     } catch (err: any) {
       toast.error(err?.message ?? 'Failed to delete.');

@@ -12,6 +12,16 @@ export const adminLogin = async (email: string, password: string) => {
   try {
     // In this specific version (v0.36.7), admins are Superusers managed via '_superusers'
     const authData = await pb.collection('_superusers').authWithPassword(email, password);
+    
+    // Log login event
+    try {
+      await pb.collection('audit_logs').create({
+        event: 'LOGIN',
+        user: email,
+        details: 'Successful session start'
+      });
+    } catch {}
+
     return authData;
   } catch (error) {
     console.error('Login failed:', error);
@@ -19,10 +29,20 @@ export const adminLogin = async (email: string, password: string) => {
   }
 };
 
+export const createAuditLog = async (event: string, details: string) => {
+  try {
+    const user = pb.authStore.model?.email || 'system';
+    await pb.collection('audit_logs').create({ event, user, details });
+  } catch (e) {
+    console.warn('Failed to create audit log', e);
+  }
+};
+
 // ── CREATE ────────────────────────────────────────────────────
 export const addProduct = async (formData: FormData) => {
   try {
     const record = await pb.collection('products').create(formData);
+    void createAuditLog('CREATE', `Diamond catalog: ${formData.get('product_id') || record.id} added`);
     return record;
   } catch (error) {
     console.error('Error adding product:', error);
@@ -47,6 +67,7 @@ export const getProducts = async () => {
 export const updateProduct = async (id: string, formData: FormData) => {
   try {
     const record = await pb.collection('products').update(id, formData);
+    void createAuditLog('UPDATE', `Diamond catalog: ${formData.get('product_id') || id} updated`);
     return record;
   } catch (error) {
     console.error('Error updating product:', error);
@@ -58,6 +79,7 @@ export const updateProduct = async (id: string, formData: FormData) => {
 export const deleteProduct = async (id: string) => {
   try {
     await pb.collection('products').delete(id);
+    void createAuditLog('DELETE', `Diamond product ${id} removed`);
   } catch (error) {
     console.error('Error deleting product:', error);
     throw error;
