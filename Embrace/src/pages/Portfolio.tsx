@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FadeUp } from '@/components/AnimationWrappers';
-import { getProducts, getImageUrl } from '@/lib/pocketbase';
+import pb, { getImageUrl } from '@/lib/pocketbase';
 
 const SAVED_PROJECTS_KEY = 'savedPortfolioProjects';
 
@@ -135,12 +135,26 @@ export default function Portfolio() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selected, setSelected] = useState<Project | null>(null);
   const [savedProjects, setSavedProjects] = useState<Record<string, boolean>>({});
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loadingAction, setLoadingAction] = useState<'reserve' | 'enquire' | null>(null);
   const [activePopup, setActivePopup] = useState<'reserve' | null>(null);
   const [reserveStep, setReserveStep] = useState<'confirm' | 'form' | 'thankyou'>('confirm');
   const [inquiryForm, setInquiryForm] = useState({ name: '', email: '', message: '' });
   const [openSections, setOpenSections] = useState({ diamond: true, metal: false });
   const navigate = useNavigate();
+  const initialTitleRef = useRef<string>(document.title);
+
+  useEffect(() => {
+    document.title = selected?.title
+      ? `Embrace Jewellery - ${selected.title}`
+      : 'Embrace Jewellery - Portfolio';
+  }, [selected?.title]);
+
+  useEffect(() => {
+    return () => {
+      document.title = initialTitleRef.current;
+    };
+  }, []);
 
   const categories = useMemo(
     () => ['All', ...Array.from(new Set(projects.map((p) => p.cat)))],
@@ -176,60 +190,164 @@ export default function Portfolio() {
 
     const loadCatalog = async () => {
       try {
-        const dbProducts = await getProducts();
+        setLoadError(null);
+        const dbProducts = await pb.collection('products').getFullList({ sort: '-created' });
         if (cancelled) return;
 
         if (dbProducts && dbProducts.length > 0) {
-          const pbProjects = dbProducts.map(p => {
-             const imgUrl = p.image ? getImageUrl(p.collectionId, p.id, p.image) : '';
-             
-             return {
+          const pbProjects = dbProducts.map((p: any) => {
+            const imageName = Array.isArray(p.image) ? p.image[0] : p.image;
+            const imgUrl = imageName
+              ? ((pb as any).files?.getUrl
+                  ? (pb as any).files.getUrl(p, imageName, { thumb: '900x675' })
+                  : getImageUrl(p.collectionId, p.id, imageName, '900x675'))
+              : '';
+
+            const title = String(p.name || '').trim() || 'Jewelry Piece';
+            const shape = String(p.shape || '').trim();
+            const metal = [p.metal_color, p.metal_type].filter(Boolean).join(' ');
+            const altParts = [`Embrace Jewellery`, title, shape, metal].filter(Boolean);
+
+            return {
+              id: p.id,
+              img: imgUrl,
+              imgMedium: imgUrl,
+              imgLarge: imgUrl,
+              alt: altParts.join(' - '),
+              title,
+              cat: p.product_id ? 'Store' : 'Custom',
+              desc: p.description || 'Luxury piece',
+              catalogItem: {
                 id: p.id,
-                img: imgUrl,
-                imgMedium: imgUrl,
-                imgLarge: imgUrl,
-                alt: p.name || 'Jewelry Piece',
-                title: p.name || 'Jewelry Piece',
-                cat: p.product_id ? 'Store' : 'Custom',
-                desc: p.description || 'Luxurious Diamond Piece',
-                catalogItem: {
-                   id: p.id,
-                   name: p.name,
-                   shape: p.shape,
-                   color: p.color,
-                   clarity: p.clarity,
-                   carat: p.carat,
-                   productId: p.product_id,
-                   description: p.description,
-                   mainDiamondShape: p.main_diamond_shape,
-                   mainDiamondWeight: p.main_diamond_weight,
-                   mainDiamondClarity: p.main_diamond_clarity,
-                   mainDiamondColor: p.main_diamond_color,
-                   cut: p.cut,
-                   symmetry: p.symmetry,
-                   polish: p.polish,
-                   secondaryDiamondWeight: p.secondary_diamond_weight,
-                   secondaryDiamondClarity: p.secondary_diamond_clarity,
-                   secondaryDiamondColor: p.secondary_diamond_color,
-                   metalType: p.metal_type,
-                   metalPurity: p.metal_purity,
-                   metalColor: p.metal_color,
-                   metalWeight: p.metal_weight,
-                   replacementValue: p.replacement_value,
-                   certification: p.certification
-                }
-             };
+                name: p.name,
+                shape: p.shape,
+                color: p.color,
+                clarity: p.clarity,
+                carat: p.carat,
+                productId: p.product_id,
+                description: p.description,
+                mainDiamondShape: p.main_diamond_shape,
+                mainDiamondWeight: p.main_diamond_weight,
+                mainDiamondClarity: p.main_diamond_clarity,
+                mainDiamondColor: p.main_diamond_color,
+                cut: p.cut,
+                symmetry: p.symmetry,
+                polish: p.polish,
+                secondaryDiamondWeight: p.secondary_diamond_weight,
+                secondaryDiamondClarity: p.secondary_diamond_clarity,
+                secondaryDiamondColor: p.secondary_diamond_color,
+                metalType: p.metal_type,
+                metalPurity: p.metal_purity,
+                metalColor: p.metal_color,
+                metalWeight: p.metal_weight,
+                replacementValue: p.replacement_value,
+                certification: p.certification,
+              },
+            };
           });
           setProjects(pbProjects);
         }
       } catch (err) {
         console.error("Failed to load products from PocketBase", err);
+        if (!cancelled) {
+          setProjects([]);
+          const status = (err as any)?.status;
+          if (status === 401 || status === 403) {
+            setLoadError("Catalog is private. Update PocketBase products list/view rules to allow public read.");
+          } else {
+            setLoadError("Unable to load jewelry catalog. Please try again shortly.");
+          }
+        }
       }
     };
 
     void loadCatalog();
+
+    let unsubscribe: null | (() => void) = null;
+    pb.collection('products')
+      .subscribe('*', (event: any) => {
+        if (cancelled) return;
+
+        setProjects((prev) => {
+          const action = String(event?.action || "");
+          const record = event?.record;
+          if (!record?.id) return prev;
+
+          if (action === 'delete') {
+            return prev.filter((p) => p.id !== record.id);
+          }
+
+          const imageName = Array.isArray(record.image) ? record.image[0] : record.image;
+          const imgUrl = imageName
+            ? ((pb as any).files?.getUrl
+                ? (pb as any).files.getUrl(record, imageName, { thumb: '900x675' })
+                : getImageUrl(record.collectionId, record.id, imageName, '900x675'))
+            : '';
+
+          const title = String(record.name || '').trim() || 'Jewelry Piece';
+          const shape = String(record.shape || '').trim();
+          const metal = [record.metal_color, record.metal_type].filter(Boolean).join(' ');
+          const altParts = [`Embrace Jewellery`, title, shape, metal].filter(Boolean);
+
+          const nextProject: Project = {
+            id: record.id,
+            img: imgUrl,
+            imgMedium: imgUrl,
+            imgLarge: imgUrl,
+            alt: altParts.join(' - '),
+            title,
+            cat: record.product_id ? 'Store' : 'Custom',
+            desc: record.description || 'Luxury piece',
+            catalogItem: {
+              id: record.id,
+              name: record.name,
+              shape: record.shape,
+              color: record.color,
+              clarity: record.clarity,
+              carat: record.carat,
+              productId: record.product_id,
+              description: record.description,
+              mainDiamondShape: record.main_diamond_shape,
+              mainDiamondWeight: record.main_diamond_weight,
+              mainDiamondClarity: record.main_diamond_clarity,
+              mainDiamondColor: record.main_diamond_color,
+              cut: record.cut,
+              symmetry: record.symmetry,
+              polish: record.polish,
+              secondaryDiamondWeight: record.secondary_diamond_weight,
+              secondaryDiamondClarity: record.secondary_diamond_clarity,
+              secondaryDiamondColor: record.secondary_diamond_color,
+              metalType: record.metal_type,
+              metalPurity: record.metal_purity,
+              metalColor: record.metal_color,
+              metalWeight: record.metal_weight,
+              replacementValue: record.replacement_value,
+              certification: record.certification,
+            },
+          };
+
+          const existingIndex = prev.findIndex((p) => p.id === record.id);
+          if (existingIndex >= 0) {
+            const next = [...prev];
+            next[existingIndex] = nextProject;
+            return next;
+          }
+
+          return [nextProject, ...prev];
+        });
+      })
+      .then((unsub: any) => {
+        unsubscribe = typeof unsub === 'function' ? unsub : null;
+      })
+      .catch((subErr: any) => {
+        console.warn("PocketBase realtime subscription failed", subErr);
+      });
+
     return () => {
       cancelled = true;
+      try {
+        unsubscribe?.();
+      } catch {}
     };
   }, []);
 
@@ -358,10 +476,24 @@ export default function Portfolio() {
         <div className="mx-auto max-w-7xl">
           <motion.div layout className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             <AnimatePresence mode="popLayout">
+              {filtered.length === 0 && (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="sm:col-span-2 md:col-span-3 lg:col-span-4 rounded-xl border border-border bg-card/40 p-10 text-center"
+                >
+                  <p className="font-body text-xs font-light uppercase tracking-[0.3em] text-muted-foreground">
+                    {loadError || "No jewelry items yet. Add products in Admin to see them here."}
+                  </p>
+                </motion.div>
+              )}
               {filtered.map((project, i) => {
                 const catalogItem = project.catalogItem;
                 const cardTitle = catalogItem?.name ?? project.title;
                 const cardAlt = catalogItem?.name ?? (project.alt || project.title);
+                const cardImage = project.imgMedium || project.img;
 
                 return (
                   <motion.div
@@ -396,15 +528,21 @@ export default function Portfolio() {
                       style={{ transformStyle: 'preserve-3d' }}
                     >
                       <div className="aspect-[4/3] overflow-hidden">
-                      <img
-                        src={project.imgMedium || project.img}
-                        srcSet={buildSrcSet(project)}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        alt={cardAlt}
-                        loading="lazy"
-                        decoding="async"
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      />
+                      {cardImage ? (
+                        <img
+                          src={cardImage}
+                          srcSet={buildSrcSet(project)}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          alt={cardAlt}
+                          loading="lazy"
+                          decoding="async"
+                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-muted/10">
+                          <span className="font-body text-xs uppercase tracking-[0.3em] text-muted-foreground">No image</span>
+                        </div>
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 p-3">

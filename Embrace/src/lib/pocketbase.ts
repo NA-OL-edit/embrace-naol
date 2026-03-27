@@ -2,7 +2,10 @@ import PocketBase from 'pocketbase';
 
 // Backend URL
 // For Vite, environment variables should be prefixed with VITE_. In production, VITE_PB_URL will take over.
-const PB_URL = import.meta.env.VITE_PB_URL || 'http://127.0.0.1:8090'; 
+const PB_URL = import.meta.env.VITE_PB_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8090' : '');
+if (import.meta.env.PROD && !PB_URL) {
+  throw new Error("Missing VITE_PB_URL for PocketBase. Set it in your hosting environment variables.");
+}
 const pb = new PocketBase(PB_URL);
 
 export default pb;
@@ -89,8 +92,12 @@ export const deleteProduct = async (id: string) => {
 
 // ── Image URL helper ──────────────────────────────────────────
 export const getImageUrl = (collectionId: string, recordId: string, fileName: string, thumb?: string) => {
-  // CollectionId is often needed in newer PB versions for correct URL generation
-  return pb.getFileUrl({ collectionId, id: recordId } as any, fileName, thumb ? { thumb } : undefined);
+  // PocketBase expects the full record (id + collectionId) for file URL generation.
+  const record = { collectionId, id: recordId } as any;
+  if ((pb as any).files?.getUrl) {
+    return (pb as any).files.getUrl(record, fileName, thumb ? { thumb } : undefined);
+  }
+  return pb.getFileUrl(record, fileName, thumb ? { thumb } : undefined);
 };
 
 export const adminLogout = () => {
