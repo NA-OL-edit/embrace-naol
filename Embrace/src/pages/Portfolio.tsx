@@ -485,7 +485,10 @@ export default function Portfolio() {
                   className="sm:col-span-2 md:col-span-3 lg:col-span-4 rounded-xl border border-border bg-card/40 p-10 text-center"
                 >
                   <p className="font-body text-xs font-light uppercase tracking-[0.3em] text-muted-foreground">
-                    {loadError || "No jewelry items yet. Add products in Admin to see them here."}
+                    {loadError ||
+                      (pb.authStore.isValid
+                        ? "No jewelry items found. Create products in Admin to see them here."
+                        : "No jewelry items returned. If Admin shows products, make the PocketBase 'products' list/view rules public (or set VITE_PB_URL to the correct database).")}
                   </p>
                 </motion.div>
               )}
