@@ -1,10 +1,16 @@
 import PocketBase from 'pocketbase';
 
 // Backend URL
-// For Vite, environment variables should be prefixed with VITE_. In production, VITE_PB_URL will take over.
-const PB_URL = import.meta.env.VITE_PB_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8090' : '');
+// For Vite, environment variables should be prefixed with VITE_.
+// Preferred: VITE_POCKETBASE_URL (kept compatible with legacy VITE_PB_URL).
+const PB_URL =
+  import.meta.env.VITE_POCKETBASE_URL ||
+  import.meta.env.VITE_PB_URL ||
+  (import.meta.env.DEV ? 'http://127.0.0.1:8090' : '');
+
 if (import.meta.env.PROD && !PB_URL) {
-  throw new Error("Missing VITE_PB_URL for PocketBase. Set it in your hosting environment variables.");
+  // Don't hard-crash production builds; surface the issue via UI/console instead.
+  console.error("[PocketBase] Missing VITE_POCKETBASE_URL (or legacy VITE_PB_URL). Public data will not load.");
 }
 const pb = new PocketBase(PB_URL);
 

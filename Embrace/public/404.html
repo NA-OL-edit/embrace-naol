@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Embrace Jewellery</title>
+    <script>
+      // SPA redirect helper for static hosts (e.g., GitHub Pages) when using BrowserRouter.
+      // HashRouter deployments don't need this.
+      (function () {
+        var loc = window.location;
+        var path = loc.pathname || "/";
+        var search = loc.search || "";
+        var hash = loc.hash || "";
+
+        var host = String(loc.hostname || "");
+        var isGithubPages = host.endsWith("github.io");
+
+        // GitHub Pages project sites live under "/<repo>/".
+        var base = "/";
+        if (isGithubPages) {
+          var parts = path.split("/").filter(Boolean);
+          if (parts.length > 0) base = "/" + parts[0] + "/";
+        }
+
+        loc.replace(base + "?redirect=" + encodeURIComponent(path + search + hash));
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>

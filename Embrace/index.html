@@ -19,13 +19,29 @@
     <meta name="twitter:image" content="/placeholder.svg" />
 
     <!-- Favicon links: use provided Logo.ico and SVG fallback -->
-    <link rel="icon" href="/Logo.ico" />
-    <link rel="icon" type="image/svg+xml" href="/placeholder.svg" />
-    <link rel="apple-touch-icon" href="/Logo.ico" />
+    <link rel="icon" href="%BASE_URL%Logo.ico" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%placeholder.svg" />
+    <link rel="apple-touch-icon" href="%BASE_URL%Logo.ico" />
   </head>
 
   <body>
     <div id="root"></div>
+    <script>
+      // Handles the GitHub Pages 404.html redirect (and similar static-host redirects).
+      // If the site is loaded at "/?redirect=/some/path", restore the intended URL before React mounts.
+      (function () {
+        try {
+          var url = new URL(window.location.href);
+          var redirect = url.searchParams.get("redirect");
+          if (!redirect) return;
+          url.searchParams.delete("redirect");
+          var next = decodeURIComponent(redirect);
+          window.history.replaceState(null, "", next);
+        } catch {
+          // ignore
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -3,10 +3,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, HashRouter, Routes, Route, useLocation } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import Footer from "./components/Footer";
 import TrendingTickersBar from "./components/TrendingTickersBar";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // Public pages
 const Index = lazy(() => import("./pages/Index"));
@@ -28,6 +29,7 @@ const Media = lazy(() => import("./pages/admin/Media"));
 const Settings = lazy(() => import("./pages/admin/Settings"));
 
 const queryClient = new QueryClient();
+const useHashRouter = import.meta.env.VITE_ROUTER_MODE === "hash";
 
 const spinner = (
   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
@@ -84,15 +86,23 @@ function AppRouter() {
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AppRouter />
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        {useHashRouter ? (
+          <HashRouter>
+            <AppRouter />
+          </HashRouter>
+        ) : (
+          <BrowserRouter basename={import.meta.env.BASE_URL}>
+            <AppRouter />
+          </BrowserRouter>
+        )}
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
