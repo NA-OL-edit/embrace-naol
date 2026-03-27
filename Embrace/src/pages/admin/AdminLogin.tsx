@@ -9,9 +9,18 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const pocketBaseUrl =
+    (import.meta as any).env?.VITE_POCKETBASE_URL || (import.meta as any).env?.VITE_PB_URL || "";
+  const staticMode =
+    String((import.meta as any).env?.VITE_STATIC_CATALOG || "").toLowerCase() === "true" || !pocketBaseUrl;
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
+    if (staticMode) {
+      setError("Live Editing is Disabled. Connect PocketBase and set VITE_POCKETBASE_URL to enable Admin editing.");
+      return;
+    }
     setLoading(true);
     try {
       await adminLogin(email, password);
@@ -27,6 +36,11 @@ export default function AdminLogin() {
     <div style={styles.bg}>
       <div style={styles.box}>
         <h2 style={styles.title}>Admin Login</h2>
+        {staticMode && (
+          <div style={styles.notice}>
+            Live Editing is Disabled. This build runs on a local static catalog until the database is connected.
+          </div>
+        )}
         {error && <div style={styles.error}>{error}</div>}
         <form onSubmit={handleSubmit}>
           <div style={styles.group}>
@@ -38,6 +52,7 @@ export default function AdminLogin() {
               style={styles.input}
               required
               autoFocus
+              disabled={staticMode}
             />
           </div>
           <div style={styles.group}>
@@ -48,10 +63,11 @@ export default function AdminLogin() {
               onChange={(e) => setPassword(e.target.value)}
               style={styles.input}
               required
+              disabled={staticMode}
             />
           </div>
-          <button type="submit" style={styles.btn} disabled={loading}>
-            {loading ? "Signing in…" : "Login"}
+          <button type="submit" style={styles.btn} disabled={loading || staticMode}>
+            {staticMode ? "Live Editing Disabled" : loading ? "Signing in…" : "Login"}
           </button>
         </form>
       </div>
@@ -80,6 +96,17 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: "0 24px 64px rgba(0,0,0,0.5)" 
   },
   title: { fontSize: 18, fontWeight: 500, marginBottom: 20, color: "#f8f7f2", fontFamily: "system-ui, sans-serif" },
+  notice: {
+    color: "#f6e27a",
+    marginBottom: 12,
+    fontSize: 12,
+    fontFamily: "system-ui, sans-serif",
+    lineHeight: 1.4,
+    border: "1px solid rgba(246, 226, 122, 0.35)",
+    background: "rgba(246, 226, 122, 0.08)",
+    padding: "10px 12px",
+    borderRadius: 10,
+  },
   error: { color: "#ff6b6b", marginBottom: 15, fontSize: 13, fontFamily: "system-ui, sans-serif" },
   group: { marginBottom: 16 },
   label: { display: "block", fontSize: 11, color: "#b4b2a9", marginBottom: 5, fontWeight: 500, fontFamily: "system-ui, sans-serif", letterSpacing: "0.05em" },

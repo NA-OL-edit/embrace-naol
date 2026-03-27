@@ -3,8 +3,8 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Gem, Flame, Shield, Award } from 'lucide-react';
 import { FadeUp, ScaleIn } from '@/components/AnimationWrappers';
 import HeroScene from '@/components/HeroScene';
-import { getLatestProducts, getImageUrl } from '@/lib/pocketbase';
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { getJewelryCatalog } from '@/lib/jewelryCatalog';
 
 import heroBg from '@/assets/portfolio/custom/premium-cuban-link-set.png';
 import portfolio1 from '@/assets/portfolio/raw/custom-eritrea-map-pendant-with-diamond-accents.jpg';
@@ -26,39 +26,22 @@ const services = [
 ];
 
 function PortfolioPreview() {
-  const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getLatestProducts(3).then(res => {
-      setItems(res.items);
-      setLoading(false);
-    }).catch(err => {
-      console.error(err);
-      setLoading(false);
-    });
-  }, []);
-
-  if (loading) return (
-    <div className="mt-16 grid gap-4 md:grid-cols-3">
-      {[1, 2, 3].map(i => <div key={i} className="aspect-square animate-pulse bg-muted/20" />)}
-    </div>
-  );
+  const items = useMemo(() => getJewelryCatalog().slice(0, 3), []);
 
   return (
     <div className="mt-16 grid gap-4 md:grid-cols-3">
       {items.map((item, i) => {
-        const img = item.image ? getImageUrl(item.collectionId, item.id, item.image, '500x500') : '';
+        const img = item.imageUrl || '';
         const title = item.name || 'Masterpiece';
-        const cat = item.product_id ? 'Store' : 'Custom';
+        const cat = item.category || 'Catalog';
 
         return (
-          <ScaleIn key={item.id} delay={i * 0.15}>
+          <ScaleIn key={item.id || i} delay={i * 0.15}>
             <Link to="/portfolio" className="group relative block aspect-square overflow-hidden bg-card">
               {img ? (
                 <img
                   src={img}
-                  alt={title}
+                  alt={item.alt || title}
                   loading="lazy"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />

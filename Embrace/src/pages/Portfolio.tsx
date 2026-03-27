@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FadeUp } from '@/components/AnimationWrappers';
-import pb, { getImageUrl } from '@/lib/pocketbase';
-import jewelryCatalogData from '@/data/jewelryCatalog.json';
+import { DEFAULT_JEWELRY_IMAGE, getJewelryCatalog } from '@/lib/jewelryCatalog';
 
 const SAVED_PROJECTS_KEY = 'savedPortfolioProjects';
 
@@ -52,117 +51,45 @@ type SpecRow = {
   value: string;
 };
 
-const localImageModules = import.meta.glob('../assets/portfolio/**/*.{png,jpg,jpeg,webp,avif}', {
-  eager: true,
-  import: 'default',
-}) as Record<string, string>;
-
-const jewelryImageModules = import.meta.glob('../assets/jewelry/**/*.{png,jpg,jpeg,webp,avif,svg}', {
-  eager: true,
-  import: 'default',
-}) as Record<string, string>;
-
-function resolveJewelryAsset(filename: string) {
-  if (!filename) return '';
-  const normalized = filename.replace(/^[\\/]+/, '');
-  const basename = normalized.replace(/^.*[\\/]/, '');
-  for (const [key, value] of Object.entries(jewelryImageModules)) {
-    if (
-      key.endsWith(`/${normalized}`) ||
-      key.endsWith(`\\${normalized}`) ||
-      (basename && (key.endsWith(`/${basename}`) || key.endsWith(`\\${basename}`)))
-    ) {
-      return value;
-    }
-  }
-  return '';
-}
-
-const DEFAULT_JEWELRY_IMAGE =
-  resolveJewelryAsset('aurora-solitaire.svg') || Object.values(jewelryImageModules)[0] || '';
-
-type FallbackCatalogItem = {
-  id: string;
-  image?: string;
-  name: string;
-  shape?: string;
-  color?: string;
-  clarity?: string;
-  carat?: string;
-  productId?: string;
-  description?: string;
-  mainDiamondShape?: string;
-  mainDiamondWeight?: string;
-  mainDiamondClarity?: string;
-  mainDiamondColor?: string;
-  cut?: string;
-  symmetry?: string;
-  polish?: string;
-  secondaryDiamondWeight?: string;
-  secondaryDiamondClarity?: string;
-  secondaryDiamondColor?: string;
-  metalType?: string;
-  metalPurity?: string;
-  metalColor?: string;
-  metalWeight?: string;
-  replacementValue?: string;
-  certification?: string;
-};
-
-function loadFallbackProjects(): Project[] {
-  const anyData = jewelryCatalogData as any;
-  const catalog: FallbackCatalogItem[] = Array.isArray(anyData?.fallbackCatalog)
-    ? anyData.fallbackCatalog
-    : Array.isArray(anyData?.jewelryCatalog)
-      ? anyData.jewelryCatalog
-      : [];
-
-  return catalog.slice(0, 48).map((item, idx) => {
-    const title = String(item?.name || "").trim() || "Jewelry Piece";
-    const imageRef = String(item?.image || item?.id || '').trim();
-    const img = resolveJewelryAsset(imageRef) || DEFAULT_JEWELRY_IMAGE;
-
-    const shape = String(item?.shape || "").trim();
-    const metal = [item?.metalColor, item?.metalType].filter(Boolean).join(" ");
-    const altParts = [`Embrace Jewellery`, title, shape, metal].filter(Boolean);
-
+function loadStaticProjects(): Project[] {
+  const catalog = getJewelryCatalog();
+  return catalog.slice(0, 96).map((item) => {
     const catalogItem: CatalogItem = {
-      id: String(item?.productId || item?.id || `fallback-${idx}`),
-      name: title,
-      shape: shape || "N/A",
-      color: String(item?.color || "").trim() || "N/A",
-      clarity: String(item?.clarity || "").trim() || "N/A",
-      carat: String(item?.carat || "").trim() || "N/A",
-      productId: item?.productId,
-      description: item?.description,
-      mainDiamondShape: item?.mainDiamondShape,
-      mainDiamondWeight: item?.mainDiamondWeight,
-      mainDiamondClarity: item?.mainDiamondClarity,
-      mainDiamondColor: item?.mainDiamondColor,
-      cut: item?.cut,
-      symmetry: item?.symmetry,
-      polish: item?.polish,
-      secondaryDiamondWeight: item?.secondaryDiamondWeight,
-      secondaryDiamondClarity: item?.secondaryDiamondClarity,
-      secondaryDiamondColor: item?.secondaryDiamondColor,
-      metalType: item?.metalType,
-      metalPurity: item?.metalPurity,
-      metalColor: item?.metalColor,
-      metalWeight: item?.metalWeight,
-      replacementValue: item?.replacementValue,
-      certification: item?.certification,
+      id: String(item.productId || item.id),
+      name: item.name,
+      shape: item.shape || 'N/A',
+      color: item.color || 'N/A',
+      clarity: item.clarity || 'N/A',
+      carat: item.carat || 'N/A',
+      productId: item.productId,
+      description: item.description,
+      mainDiamondShape: item.mainDiamondShape,
+      mainDiamondWeight: item.mainDiamondWeight,
+      mainDiamondClarity: item.mainDiamondClarity,
+      mainDiamondColor: item.mainDiamondColor,
+      cut: item.cut,
+      symmetry: item.symmetry,
+      polish: item.polish,
+      secondaryDiamondWeight: item.secondaryDiamondWeight,
+      secondaryDiamondClarity: item.secondaryDiamondClarity,
+      secondaryDiamondColor: item.secondaryDiamondColor,
+      metalType: item.metalType,
+      metalPurity: item.metalPurity,
+      metalColor: item.metalColor,
+      metalWeight: item.metalWeight,
+      replacementValue: item.replacementValue,
+      certification: item.certification,
     };
 
-    const projectId = String(item?.productId || item?.id || `fallback-${idx}`);
     return {
-      id: projectId,
-      img,
-      imgMedium: img,
-      imgLarge: img,
-      alt: altParts.join(" - "),
-      title,
-      cat: "Catalog",
-      desc: String(item?.description || "").trim() || "Luxury piece",
+      id: String(item.id),
+      img: item.imageUrl,
+      imgMedium: item.imageUrl,
+      imgLarge: item.imageUrl,
+      alt: item.alt,
+      title: item.name,
+      cat: item.category,
+      desc: item.description || 'Luxury piece',
       catalogItem,
     };
   });
@@ -244,10 +171,9 @@ function isModalAllowed(project: Project | null) {
 
 export default function Portfolio() {
   const [active, setActive] = useState('All');
-  const [projects, setProjects] = useState<Project[]>(() => loadFallbackProjects());
+  const projects = useMemo(() => loadStaticProjects(), []);
   const [selected, setSelected] = useState<Project | null>(null);
   const [savedProjects, setSavedProjects] = useState<Record<string, boolean>>({});
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [loadingAction, setLoadingAction] = useState<'reserve' | 'enquire' | null>(null);
   const [activePopup, setActivePopup] = useState<'reserve' | null>(null);
   const [reserveStep, setReserveStep] = useState<'confirm' | 'form' | 'thankyou'>('confirm');
@@ -255,7 +181,6 @@ export default function Portfolio() {
   const [openSections, setOpenSections] = useState({ diamond: true, metal: false });
   const navigate = useNavigate();
   const initialTitleRef = useRef<string>(document.title);
-  const usingFallbackRef = useRef(true);
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     if (!DEFAULT_JEWELRY_IMAGE) return;
@@ -305,189 +230,6 @@ export default function Portfolio() {
     } catch {
       setSavedProjects({});
     }
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    let unsubscribe: null | (() => void) = null;
-
-    const loadFromPocketBase = async () => {
-      try {
-        setLoadError(null);
-        const dbProducts = await pb.collection('products').getFullList({ sort: '-created' });
-        if (cancelled) return false;
-
-        if (dbProducts && dbProducts.length > 0) {
-          const pbProjects = dbProducts.map((p: any) => {
-            const imageName = Array.isArray(p.image) ? p.image[0] : p.image;
-            const imgUrl = imageName
-              ? ((pb as any).files?.getUrl
-                  ? (pb as any).files.getUrl(p, imageName, { thumb: '900x675' })
-                  : getImageUrl(p.collectionId, p.id, imageName, '900x675'))
-              : '';
-
-            const title = String(p.name || '').trim() || 'Jewelry Piece';
-            const shape = String(p.shape || '').trim();
-            const metal = [p.metal_color, p.metal_type].filter(Boolean).join(' ');
-            const altParts = [`Embrace Jewellery`, title, shape, metal].filter(Boolean);
-
-            return {
-              id: p.id,
-              img: imgUrl,
-              imgMedium: imgUrl,
-              imgLarge: imgUrl,
-              alt: altParts.join(' - '),
-              title,
-              cat: p.product_id ? 'Store' : 'Custom',
-              desc: p.description || 'Luxury piece',
-              catalogItem: {
-                id: p.id,
-                name: p.name,
-                shape: p.shape,
-                color: p.color,
-                clarity: p.clarity,
-                carat: p.carat,
-                productId: p.product_id,
-                description: p.description,
-                mainDiamondShape: p.main_diamond_shape,
-                mainDiamondWeight: p.main_diamond_weight,
-                mainDiamondClarity: p.main_diamond_clarity,
-                mainDiamondColor: p.main_diamond_color,
-                cut: p.cut,
-                symmetry: p.symmetry,
-                polish: p.polish,
-                secondaryDiamondWeight: p.secondary_diamond_weight,
-                secondaryDiamondClarity: p.secondary_diamond_clarity,
-                secondaryDiamondColor: p.secondary_diamond_color,
-                metalType: p.metal_type,
-                metalPurity: p.metal_purity,
-                metalColor: p.metal_color,
-                metalWeight: p.metal_weight,
-                replacementValue: p.replacement_value,
-                certification: p.certification,
-              },
-            };
-          });
-          setProjects(pbProjects);
-          usingFallbackRef.current = false;
-          return true;
-        }
-
-        // If PocketBase is reachable but returns no items, fall back to local catalog
-        setProjects(loadFallbackProjects());
-        usingFallbackRef.current = true;
-        setLoadError('Showing curated catalog while live inventory is empty.');
-        return true;
-      } catch (err) {
-        console.warn("PocketBase unavailable, using local jewelry catalog fallback.", err);
-        if (!cancelled) {
-          setProjects(loadFallbackProjects());
-          usingFallbackRef.current = true;
-          setLoadError('Showing curated catalog while live inventory is unavailable.');
-        }
-        return false;
-      }
-    };
-
-    const setupRealtime = () => {
-      pb.collection('products')
-        .subscribe('*', (event: any) => {
-          if (cancelled) return;
-
-          setProjects((prev) => {
-            const action = String(event?.action || "");
-            const record = event?.record;
-            if (!record?.id) return prev;
-
-            if (action === 'delete') {
-              return prev.filter((p) => p.id !== record.id);
-            }
-
-            const imageName = Array.isArray(record.image) ? record.image[0] : record.image;
-            const imgUrl = imageName
-              ? ((pb as any).files?.getUrl
-                  ? (pb as any).files.getUrl(record, imageName, { thumb: '900x675' })
-                  : getImageUrl(record.collectionId, record.id, imageName, '900x675'))
-              : '';
-
-            const title = String(record.name || '').trim() || 'Jewelry Piece';
-            const shape = String(record.shape || '').trim();
-            const metal = [record.metal_color, record.metal_type].filter(Boolean).join(' ');
-            const altParts = [`Embrace Jewellery`, title, shape, metal].filter(Boolean);
-
-            const nextProject: Project = {
-              id: record.id,
-              img: imgUrl,
-              imgMedium: imgUrl,
-              imgLarge: imgUrl,
-              alt: altParts.join(' - '),
-              title,
-              cat: record.product_id ? 'Store' : 'Custom',
-              desc: record.description || 'Luxury piece',
-              catalogItem: {
-                id: record.id,
-                name: record.name,
-                shape: record.shape,
-                color: record.color,
-                clarity: record.clarity,
-                carat: record.carat,
-                productId: record.product_id,
-                description: record.description,
-                mainDiamondShape: record.main_diamond_shape,
-                mainDiamondWeight: record.main_diamond_weight,
-                mainDiamondClarity: record.main_diamond_clarity,
-                mainDiamondColor: record.main_diamond_color,
-                cut: record.cut,
-                symmetry: record.symmetry,
-                polish: record.polish,
-                secondaryDiamondWeight: record.secondary_diamond_weight,
-                secondaryDiamondClarity: record.secondary_diamond_clarity,
-                secondaryDiamondColor: record.secondary_diamond_color,
-                metalType: record.metal_type,
-                metalPurity: record.metal_purity,
-                metalColor: record.metal_color,
-                metalWeight: record.metal_weight,
-                replacementValue: record.replacement_value,
-                certification: record.certification,
-              },
-            };
-
-            if (usingFallbackRef.current) {
-              usingFallbackRef.current = false;
-              setLoadError(null);
-              return [nextProject];
-            }
-
-            const existingIndex = prev.findIndex((p) => p.id === record.id);
-            if (existingIndex >= 0) {
-              const next = [...prev];
-              next[existingIndex] = nextProject;
-              return next;
-            }
-
-            return [nextProject, ...prev];
-          });
-        })
-        .then((unsub: any) => {
-          unsubscribe = typeof unsub === 'function' ? unsub : null;
-        })
-        .catch((subErr: any) => {
-          console.warn("PocketBase realtime subscription failed", subErr);
-        });
-    };
-
-    void loadFromPocketBase().then((usedPocketBase) => {
-      if (cancelled) return;
-      if (usedPocketBase) setupRealtime();
-    });
-
-    return () => {
-      cancelled = true;
-      try {
-        unsubscribe?.();
-      } catch {}
-    };
   }, []);
 
   useEffect(() => {
@@ -624,10 +366,7 @@ export default function Portfolio() {
                   className="sm:col-span-2 md:col-span-3 lg:col-span-4 rounded-xl border border-border bg-card/40 p-10 text-center"
                 >
                   <p className="font-body text-xs font-light uppercase tracking-[0.3em] text-muted-foreground">
-                    {loadError ||
-                      (pb.authStore.isValid
-                        ? "No jewelry items found. Create products in Admin to see them here."
-                        : "No jewelry items returned. If Admin shows products, make the PocketBase 'products' list/view rules public (or set VITE_PB_URL to the correct database).")}
+                    No jewelry items found in the local catalog.
                   </p>
                 </motion.div>
               )}
