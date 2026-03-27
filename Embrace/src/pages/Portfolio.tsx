@@ -78,6 +78,9 @@ function resolveJewelryAsset(filename: string) {
   return '';
 }
 
+const DEFAULT_JEWELRY_IMAGE =
+  resolveJewelryAsset('aurora-solitaire.svg') || Object.values(jewelryImageModules)[0] || '';
+
 type FallbackCatalogItem = {
   id: string;
   image?: string;
@@ -117,7 +120,7 @@ function loadFallbackProjects(): Project[] {
   return catalog.slice(0, 48).map((item, idx) => {
     const title = String(item?.name || "").trim() || "Jewelry Piece";
     const imageRef = String(item?.image || item?.id || '').trim();
-    const img = resolveJewelryAsset(imageRef);
+    const img = resolveJewelryAsset(imageRef) || DEFAULT_JEWELRY_IMAGE;
 
     const shape = String(item?.shape || "").trim();
     const metal = [item?.metalColor, item?.metalType].filter(Boolean).join(" ");
@@ -253,6 +256,15 @@ export default function Portfolio() {
   const navigate = useNavigate();
   const initialTitleRef = useRef<string>(document.title);
   const usingFallbackRef = useRef(true);
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if (!DEFAULT_JEWELRY_IMAGE) return;
+    const img = e.currentTarget;
+    const current = img.getAttribute('src') || '';
+    if (current === DEFAULT_JEWELRY_IMAGE) return;
+    img.srcset = '';
+    img.src = DEFAULT_JEWELRY_IMAGE;
+  };
 
   useEffect(() => {
     document.title = selected?.title
@@ -624,6 +636,7 @@ export default function Portfolio() {
                 const cardTitle = catalogItem?.name ?? project.title;
                 const cardAlt = catalogItem?.name ?? (project.alt || project.title);
                 const cardImage = project.imgMedium || project.img;
+                const cardSrc = cardImage || DEFAULT_JEWELRY_IMAGE;
 
                 return (
                   <motion.div
@@ -658,21 +671,16 @@ export default function Portfolio() {
                       style={{ transformStyle: 'preserve-3d' }}
                     >
                       <div className="aspect-[4/3] overflow-hidden">
-                      {cardImage ? (
                         <img
-                          src={cardImage}
+                          src={cardSrc}
                           srcSet={buildSrcSet(project)}
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           alt={cardAlt}
                           loading="lazy"
                           decoding="async"
+                          onError={handleImageError}
                           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-muted/10">
-                          <span className="font-body text-xs uppercase tracking-[0.3em] text-muted-foreground">No image</span>
-                        </div>
-                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 p-3">
@@ -751,10 +759,11 @@ export default function Portfolio() {
               <div className="grid gap-0 md:grid-cols-[1.15fr_1fr]">
                 <div className="relative h-full min-h-[320px] overflow-hidden md:min-h-[560px]">
                   <img
-                    src={selected.imgLarge || selected.imgMedium || selected.img}
+                    src={selected.imgLarge || selected.imgMedium || selected.img || DEFAULT_JEWELRY_IMAGE}
                     srcSet={buildSrcSet(selected)}
                     sizes="(max-width: 768px) 100vw, 60vw"
                     alt={selected.alt || selected.title}
+                    onError={handleImageError}
                     className="absolute inset-0 h-full w-full object-cover object-center"
                   />
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/30" />
