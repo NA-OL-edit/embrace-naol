@@ -151,16 +151,19 @@ tr:hover td{background:#f1efe8}
       <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
         <div class="stat-grid">
-          <div class="stat"><div class="stat-l">Categories</div><div class="stat-v" id="dash-cat">0</div><div class="badge badge-g">Active</div></div>
           <div class="stat"><div class="stat-l">Diamonds</div><div class="stat-v" id="dash-dia">0</div><div class="badge badge-g">Live</div></div>
-          <div class="stat"><div class="stat-l">Total Logs</div><div class="stat-v" id="dash-log">0</div><div class="badge badge-b">System</div></div>
-          <div class="stat"><div class="stat-l">Pending</div><div class="stat-v">0</div><div class="badge badge-y">Review</div></div>
+          <div class="stat"><div class="stat-l">Categories</div><div class="stat-v" id="dash-cat">0</div><div class="badge badge-g">Active</div></div>
+          <div class="stat"><div class="stat-l">Audit logs</div><div class="stat-v" id="dash-log">0</div><div class="badge badge-b">Total</div></div>
+          <div class="stat"><div class="stat-l">Connection</div><div class="stat-v" style="color:#2db464; font-size:16px;">Online</div><div class="badge badge-g">PocketBase</div></div>
         </div>
         <div class="card">
-          <div class="card-head"><div class="card-title">Recent activity</div></div>
-          <div id="dash-recent-logs">
-            <div style="padding:12px; font-size:12px; color:#888780">Loading logs...</div>
-          </div>
+          <div class="card-head"><div class="card-title">Recent diamonds</div><button class="btn btn-primary btn-sm" onclick="go('diamonds',document.querySelector('[onclick*=diamonds]'))">View all</button></div>
+          <table>
+            <thead><tr><th style="width:100px">ID</th><th>Description</th><th style="width:150px">Shape</th><th style="width:120px">Certification</th></tr></thead>
+            <tbody id="dash-recent-diamonds">
+              <tr><td colspan="4" style="text-align:center">Loading diamonds...</td></tr>
+            </tbody>
+          </table>
         </div>
         <div class="card">
           <div class="card-head"><div class="card-title">Quick actions</div></div>
@@ -202,7 +205,7 @@ tr:hover td{background:#f1efe8}
             </div>
           </div>
           <table>
-            <thead><tr><th style="width:100px">SKU</th><th>Name</th><th style="width:100px">Shape</th><th style="width:80px">Weight</th><th>Actions</th></tr></thead>
+            <thead><tr><th style="width:100px">ID</th><th style="width:160px">Shape</th><th style="width:80px">Weight</th><th style="width:100px">Clarity</th><th style="width:120px">Color</th><th style="width:80px">Cut</th><th style="width:100px">Metal</th><th style="width:80px">Cert</th><th style="width:60px">Image</th><th>Actions</th></tr></thead>
             <tbody id="tbody-diamonds">
                <!-- populated by JS -->
             </tbody>
@@ -366,8 +369,10 @@ function showToast(msg){
 }
 // Pocketbase config
 const PB_URL = ''; 
-let token = localStorage.getItem('pb_token');
-let adminId = localStorage.getItem('pb_admin_id');
+localStorage.removeItem('pb_token');
+localStorage.removeItem('pb_admin_id');
+let token = null;
+let adminId = null;
 
 const pbFetch = async (path, options = {}) => {
   const headers = { ...options.headers };
@@ -488,20 +493,26 @@ async function loadPageData(page) {
         const [prodRes, catRes, logRes] = await Promise.all([
             pbFetch('/api/collections/products/records?perPage=5&sort=-created'),
             pbFetch('/api/collections/categories/records?perPage=1'),
-            pbFetch('/api/collections/logs/records?perPage=5&sort=-created')
+            pbFetch('/api/collections/logs/records?perPage=1')
         ]);
         document.getElementById('dash-dia').textContent = prodRes.totalItems || 0;
         document.getElementById('dash-cat').textContent = catRes.totalItems || 0;
         document.getElementById('dash-log').textContent = logRes.totalItems || 0;
-        let logsHtml = '';
-        if(logRes.items.length) {
-            logRes.items.forEach(l => {
-                logsHtml += `<div class="log-row"><div class="log-dot" style="background:#534AB7"></div><div class="log-time">${l.created.substring(0,10)}</div><div><b>${l.admin_email}</b> ${l.action} <b>${l.target}</b></div></div>`;
+        let phtml = '';
+        if(prodRes.items.length) {
+            prodRes.items.forEach(rawP => {
+                const p = mapCatalogData(rawP);
+                phtml += `<tr>
+                  <td style="font-family:monospace;font-size:11px;color:#888780">${p.product_id}</td>
+                  <td style="font-weight:500">${p.name || p.description}</td>
+                  <td>${p.shape || p.main_diamond_shape || '—'}</td>
+                  <td>${p.certification || '—'}</td>
+                </tr>`;
             });
         } else {
-            logsHtml = `<div style="padding:12px;font-size:12px;color:#888780">No recent activity.</div>`;
+            phtml = `<tr><td colspan="4" style="text-align:center">No recent diamonds.</td></tr>`;
         }
-        document.getElementById('dash-recent-logs').innerHTML = logsHtml;
+        document.getElementById('dash-recent-diamonds').innerHTML = phtml;
     } 
     else if (page === 'categories') {
         document.getElementById('tbody-categories').innerHTML = '<tr><td colspan="5" style="text-align:center">Loading...</td></tr>';
@@ -519,23 +530,29 @@ async function loadPageData(page) {
         document.getElementById('tbody-categories').innerHTML = html || '<tr><td colspan="5" style="text-align:center">No categories found.</td></tr>';
     }
     else if (page === 'diamonds') {
-        document.getElementById('tbody-diamonds').innerHTML = '<tr><td colspan="5" style="text-align:center">Loading...</td></tr>';
-        const res = await pbFetch('/api/collections/products/records?sort=-created');
+        document.getElementById('tbody-diamonds').innerHTML = '<tr><td colspan="10" style="text-align:center">Loading...</td></tr>';
+        const res = await pbFetch('/api/collections/products/records?perPage=200&sort=-created');
         let html = '';
         res.items.forEach(rawP => {
             const p = mapCatalogData(rawP);
+            const descHtml = p.description ? `<div style="font-size:11px;color:#888780">${p.description.substring(0,35)}...</div>` : '';
             html += `<tr>
                 <td style="font-family:monospace;font-size:11px;color:#888780">${p.product_id}</td>
-                <td style="font-weight:500">${p.name || p.description}</td>
-                <td>${p.shape || p.main_diamond_shape}</td>
-                <td>${p.main_diamond_weight}</td>
+                <td><div style="font-weight:500">${p.shape || p.main_diamond_shape || '—'}</div>${descHtml}</td>
+                <td>${p.main_diamond_weight || '—'}</td>
+                <td>${p.main_diamond_clarity || '—'}</td>
+                <td>${p.main_diamond_color || '—'}</td>
+                <td>${p.cut || '—'}</td>
+                <td>${p.metal_type || '—'}</td>
+                <td>${p.certification || '—'}</td>
+                <td>${p.image ? `<img src="${PB_URL}/api/files/products/${p.id}/${p.image}?thumb=50x50" style="width:30px;height:30px;border-radius:4px;object-fit:cover;cursor:pointer" onclick="window.open('${PB_URL}/api/files/products/${p.id}/${p.image}')">` : '—'}</td>
                 <td><div class="actions"><button class="btn btn-sm" onclick='editDiamond(${JSON.stringify(rawP).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-sm btn-danger" onclick="deleteRecord('products','${p.id}')">Del</button></div></td>
             </tr>`;
         });
-        document.getElementById('tbody-diamonds').innerHTML = html || '<tr><td colspan="5" style="text-align:center">No products found.</td></tr>';
+        document.getElementById('tbody-diamonds').innerHTML = html || '<tr><td colspan="10" style="text-align:center">No products found.</td></tr>';
     } 
     else if (page === 'media') {
-        const res = await pbFetch('/api/collections/products/records?filter=(image!="")');
+        const res = await pbFetch('/api/collections/products/records?perPage=200&filter=(image!="")');
         let html = '';
         res.items.forEach(item => {
             if(item.image) {

@@ -3,10 +3,13 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Gem, Flame, Shield, Award } from 'lucide-react';
 import { FadeUp, ScaleIn } from '@/components/AnimationWrappers';
 import HeroScene from '@/components/HeroScene';
-import heroBg from '@/assets/portfolio/custom/Premium Cuban Link Set.png';
-import portfolio1 from '@/assets/portfolio/raw/Custom Eritrea Map Pendant with Diamond Accents.jpg';
-import portfolio2 from '@/assets/portfolio/raw/H-Link Diamond Wedding & Engagement Set.png';
-import portfolio3 from '@/assets/portfolio/raw/High-Polish Yellow Gold Cuban Link Stack.png';
+import { getLatestProducts, getImageUrl } from '@/lib/pocketbase';
+import { useState, useEffect } from 'react';
+
+import heroBg from '@/assets/portfolio/custom/premium-cuban-link-set.png';
+import portfolio1 from '@/assets/portfolio/raw/custom-eritrea-map-pendant-with-diamond-accents.jpg';
+import portfolio2 from '@/assets/portfolio/raw/h-link-diamond-wedding-and-engagement-set.png';
+import portfolio3 from '@/assets/portfolio/raw/high-polish-yellow-gold-cuban-link-stack.png';
 
 const stats = [
   { value: '99.99%', label: 'Purity Guaranteed' },
@@ -21,6 +24,66 @@ const services = [
   { icon: Shield, title: 'Assay & Testing', desc: 'Certified laboratory analysis with internationally recognized standards.' },
   { icon: Award, title: 'Custom Design', desc: 'From concept to creation, we bring your vision to life in precious metals.' },
 ];
+
+function PortfolioPreview() {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getLatestProducts(3).then(res => {
+      setItems(res.items);
+      setLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) return (
+    <div className="mt-16 grid gap-4 md:grid-cols-3">
+      {[1, 2, 3].map(i => <div key={i} className="aspect-square animate-pulse bg-muted/20" />)}
+    </div>
+  );
+
+  return (
+    <div className="mt-16 grid gap-4 md:grid-cols-3">
+      {items.map((item, i) => {
+        const img = item.image ? getImageUrl(item.collectionId, item.id, item.image, '500x500') : '';
+        const title = item.name || 'Masterpiece';
+        const cat = item.product_id ? 'Store' : 'Custom';
+
+        return (
+          <ScaleIn key={item.id} delay={i * 0.15}>
+            <Link to="/portfolio" className="group relative block aspect-square overflow-hidden bg-card">
+              {img ? (
+                <img
+                  src={img}
+                  alt={title}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center border border-border bg-muted/10 p-4 text-center">
+                  <Gem size={48} strokeWidth={0.5} className="text-primary/20" />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-background/60 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                <span className="font-body text-xs font-light uppercase tracking-[0.3em] text-primary">{cat}</span>
+                <h3 className="mt-2 font-display text-xl font-light text-foreground">{title}</h3>
+              </div>
+            </Link>
+          </ScaleIn>
+        );
+      })}
+      {items.length === 0 && (
+         <div className="col-span-full py-20 text-center text-muted-foreground font-body text-sm tracking-widest uppercase">
+            New Masterpieces coming soon
+         </div>
+      )}
+    </div>
+  );
+}
 
 export default function Index() {
   return (
@@ -146,30 +209,7 @@ export default function Index() {
             <h2 className="luxury-subheading mt-4 text-foreground">Recent Masterpieces</h2>
           </FadeUp>
 
-          <div className="mt-16 grid gap-4 md:grid-cols-3">
-            {[
-              { img: portfolio1, title: 'Custom Eritrea Map Pendant with Diamond Accents', cat: 'Jewelry Casting' },
-              { img: portfolio2, title: 'H-Link Diamond Wedding & Engagement Set', cat: 'Gold Refining' },
-              { img: portfolio3, title: 'High-Polish Yellow Gold Cuban Link Stack', cat: 'Custom Design' },
-            ].map((item, i) => (
-              <ScaleIn key={item.title} delay={i * 0.15}>
-                <Link to="/portfolio" className="group relative block aspect-square overflow-hidden">
-                  <img
-                    src={item.img}
-                    alt={item.title}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-background/60 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                    <span className="font-body text-xs font-light uppercase tracking-[0.3em] text-primary">{item.cat}</span>
-                    <h3 className="mt-2 font-display text-2xl font-light text-foreground">{item.title}</h3>
-                  </div>
-                </Link>
-              </ScaleIn>
-            ))}
-          </div>
+          <PortfolioPreview />
 
           <FadeUp>
             <div className="mt-12 text-center">

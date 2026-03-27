@@ -1,8 +1,9 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Mail, Phone, Send } from 'lucide-react';
 import { z } from 'zod';
 import { FadeUp } from '@/components/AnimationWrappers';
+import { addInquiry } from '@/lib/pocketbase';
 
 const contactSchema = z.object({
   name: z
@@ -33,8 +34,17 @@ const MAX_SUBMISSIONS = 3;
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+  const [settings, setSettings] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Partial<Record<keyof typeof formData, string>>>({});
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error' | 'rate-limited'>('idle');
+
+  useEffect(() => {
+    import('@/lib/pocketbase').then(m => m.getSettingsMap().then(setSettings)).catch(console.error);
+  }, []);
+
+  const email = settings.contact_email || 'info@embracerefiningandcasting.com';
+  const phone = settings.contact_phone || '+256769947948, +251943814444, +251943794444';
+  const address = settings.contact_address || 'Addis Ababa, Ethiopia and Kampala, Uganda';
 
   const submissionTimestamps = useRef<number[]>([]);
 
@@ -68,10 +78,11 @@ export default function Contact() {
 
     try {
       setSubmitStatus('submitting');
-      await new Promise((resolve) => setTimeout(resolve, 700));
+      await addInquiry(result.data as any);
       setSubmitStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' });
-    } catch {
+    } catch (err) {
+      console.error(err);
       setSubmitStatus('error');
     }
   };
@@ -102,9 +113,9 @@ export default function Contact() {
 
               <div className="mt-12 space-y-8">
                 {[
-                  { icon: MapPin, label: 'Visit Us', value: 'Address: Addis Ababa, Ethiopia and UAE, Dubai Kampala, Uganda' },
-                  { icon: Mail, label: 'Email', value: 'info@embracerefiningandcasting.com' },
-                  { icon: Phone, label: 'Call', value: '+256769947948, +251943814444, +251943794444' },
+                  { icon: MapPin, label: 'Visit Us', value: `Address: ${address}` },
+                  { icon: Mail, label: 'Email', value: email },
+                  { icon: Phone, label: 'Call', value: phone },
                 ].map((item) => (
                   <div key={item.label} className="flex items-start gap-4">
                     <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center border border-border bg-background">
