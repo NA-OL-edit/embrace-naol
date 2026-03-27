@@ -27,7 +27,9 @@ export default function AuditLog() {
           <div key={l.id} style={s.row}>
             <div style={s.dot} />
             <div style={s.time}>{l.created?.substring(0, 16).replace("T", " ")}</div>
-            <div style={s.text}><b>{l.admin_email}</b> {l.action} target <b>{l.target}</b></div>
+            <div style={s.text}>
+              <b>{l.user || "system"}</b> {l.event || "EVENT"} {l.details ? <>— <b>{l.details}</b></> : null}
+            </div>
           </div>
         ))}
       </div>

@@ -89,30 +89,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-<<<<<<< HEAD
-        <Navigation />
-        <div className="pb-11">
-          <Suspense fallback={
-            <div className="flex items-center justify-center min-h-[50vh]">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-            </div>
-          }>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/portfolio" element={<Portfolio />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-          <Footer />
-        </div>
-        <TrendingTickersBar />
-=======
         <AppRouter />
->>>>>>> d3c933f082ca0d62004c31e42fdf0ca1d95c4b0c
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

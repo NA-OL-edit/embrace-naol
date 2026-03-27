@@ -12,7 +12,14 @@ export default function Users() {
   useEffect(() => {
     if (!pb.authStore.isValid) { navigate("/admin/login"); return; }
     getAdminUsers()
-      .then((items) => setUsers(items as User[]))
+      .then((items) => {
+        const normalized = (items as any[]).map((user) => ({
+          id: String(user?.id || ""),
+          email: String(user?.email || ""),
+          created: String(user?.created || ""),
+        }));
+        setUsers(normalized.filter((user) => user.id && user.email));
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [navigate]);

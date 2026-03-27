@@ -6,6 +6,7 @@ const PB_URL = import.meta.env.VITE_PB_URL || 'http://127.0.0.1:8090';
 const pb = new PocketBase(PB_URL);
 
 export default pb;
+export { pb };
 
 // ── Auth (PocketBase v0.36+ syntax) ──────────────────────────
 export const adminLogin = async (email: string, password: string) => {
@@ -87,7 +88,82 @@ export const deleteProduct = async (id: string) => {
 };
 
 // ── Image URL helper ──────────────────────────────────────────
-export const getImageUrl = (collectionId: string, recordId: string, fileName: string) => {
+export const getImageUrl = (collectionId: string, recordId: string, fileName: string, thumb?: string) => {
   // CollectionId is often needed in newer PB versions for correct URL generation
-  return pb.getFileUrl({ collectionId, id: recordId } as any, fileName);
+  return pb.getFileUrl({ collectionId, id: recordId } as any, fileName, thumb ? { thumb } : undefined);
+};
+
+export const adminLogout = () => {
+  try {
+    pb.authStore.clear();
+  } catch (e) {
+    console.warn("Logout failed:", e);
+  }
+};
+
+export const createLog = async (event: string, target: string) => createAuditLog(event, target);
+
+export const getProductsPage = async (page: number, perPage: number) => {
+  return pb.collection('products').getList(page, perPage, { sort: '-created' });
+};
+
+export const getLatestProducts = async (limit: number) => {
+  return getProductsPage(1, limit);
+};
+
+export const getCategories = async () => {
+  return pb.collection('categories').getFullList({ sort: 'name' });
+};
+
+export const addCategory = async (data: FormData) => {
+  return pb.collection('categories').create(data);
+};
+
+export const updateCategory = async (id: string, data: FormData) => {
+  return pb.collection('categories').update(id, data);
+};
+
+export const deleteCategory = async (id: string) => {
+  return pb.collection('categories').delete(id);
+};
+
+export const getSettings = async () => {
+  return pb.collection('settings').getFullList({ sort: 'key' });
+};
+
+export const updateSetting = async (id: string, value: string) => {
+  return pb.collection('settings').update(id, { value });
+};
+
+export const getSettingsMap = async () => {
+  const items = await getSettings();
+  const map: Record<string, string> = {};
+  for (const item of items as any[]) {
+    const key = String(item?.key || "").trim();
+    if (!key) continue;
+    map[key] = String(item?.value ?? "");
+  }
+  return map;
+};
+
+export const addInquiry = async (data: Record<string, any>) => {
+  return pb.collection('inquiries').create(data);
+};
+
+export const getAdminUsers = async () => {
+  return pb.collection('_superusers').getFullList({ sort: '-created' });
+};
+
+export const getAuditLogs = async (limit: number) => {
+  return pb.collection('audit_logs').getList(1, limit, { sort: '-created' });
+};
+
+export const getCategoriesCount = async () => {
+  const res = await pb.collection('categories').getList(1, 1);
+  return res.totalItems;
+};
+
+export const getLogsCount = async () => {
+  const res = await pb.collection('audit_logs').getList(1, 1);
+  return res.totalItems;
 };
