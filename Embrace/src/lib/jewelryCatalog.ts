@@ -42,22 +42,40 @@ const jewelryImageModules = import.meta.glob('../assets/jewelry/**/*.{png,jpg,jp
 
 function resolveJewelryAsset(ref: string) {
   if (!ref) return '';
-  const normalized = ref.replace(/^[\\/]+/, '');
-  const basename = normalized.replace(/^.*[\\/]/, '').replace(/^\.\/+/, '');
+  // Normalize input path
+  const normalizedInput = ref.replace(/^[\\/]+/, '').toLowerCase();
+  const basenameInput = normalizedInput.replace(/^.*[\\/]/, '').replace(/^\.\/+/, '');
+  
   for (const [key, value] of Object.entries(jewelryImageModules)) {
+    const lowerKey = key.toLowerCase();
+    const keyBasename = lowerKey.replace(/^.*[\\/]/, '');
+
     if (
-      key.endsWith(`/${normalized}`) ||
-      key.endsWith(`\\${normalized}`) ||
-      (basename && (key.endsWith(`/${basename}`) || key.endsWith(`\\${basename}`)))
+      lowerKey.endsWith(`/${normalizedInput}`) ||
+      lowerKey.endsWith(`\\${normalizedInput}`) ||
+      (basenameInput && (keyBasename === basenameInput))
     ) {
       return value;
     }
   }
+
+  // If exact match fails, try matching without extension
+  const nameWithoutExt = basenameInput.replace(/\.[^/.]+$/, "");
+  if (nameWithoutExt) {
+    for (const [key, value] of Object.entries(jewelryImageModules)) {
+      const keyBasename = key.toLowerCase().replace(/^.*[\\/]/, '');
+      const keyNameWithoutExt = keyBasename.replace(/\.[^/.]+$/, "");
+      if (keyNameWithoutExt === nameWithoutExt) {
+        return value;
+      }
+    }
+  }
+
   return '';
 }
 
 const DEFAULT_JEWELRY_IMAGE =
-  resolveJewelryAsset('./assets/jewelry/aurora-solitaire.svg') || Object.values(jewelryImageModules)[0] || '';
+  resolveJewelryAsset('classic-cuban-link-chain.png') || Object.values(jewelryImageModules)[0] || '';
 
 export function getJewelryCatalog(): JewelryCatalogResolvedItem[] {
   const anyData = jewelryCatalogData as any;
@@ -66,7 +84,9 @@ export function getJewelryCatalog(): JewelryCatalogResolvedItem[] {
   return raw.map((item, idx) => {
     const name = String(item?.name || '').trim() || 'Jewelry Piece';
     const category = String(item?.category || '').trim() || 'Catalog';
-    const imageRef = String(item?.image || '').trim();
+    
+    // Support both 'image' and 'matchedImage'
+    const imageRef = String(item?.image || (item as any)?.matchedImage || '').trim();
     const imageUrl = resolveJewelryAsset(imageRef) || DEFAULT_JEWELRY_IMAGE;
 
     const shape = String(item?.shape || '').trim();
